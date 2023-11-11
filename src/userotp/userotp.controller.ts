@@ -25,7 +25,8 @@ export class UserotpController {
   @Post('user/sendotp')
   async sendOtp(@Body() req: CreateUserotpDto): Promise<SuccessResponse | NotFoundException | ConflicException> {
     const user = await this.userService.getByEmail(req.email)
-    if (user) {
+    const userFirebase = await this.auth.getUserByEmail(req.email);
+    if (user || userFirebase) {
       return new ConflicException("Email đã tồn tại!")
     }
     const otp = await this.userotpService.sendotp(req.email);
