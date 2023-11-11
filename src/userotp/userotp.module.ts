@@ -6,6 +6,7 @@ import { RoleModule } from 'src/role/role.module';
 import { UserotpService } from './userotp.service';
 import { UserotpController } from './userotp.controller';
 import { UserModule } from 'src/user/user.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserModule } from 'src/user/user.module';
     AbilityModule,
     RoleModule,
     UserModule,
+    FirebaseModule
   ],
   controllers: [UserotpController],
   providers: [UserotpService],
