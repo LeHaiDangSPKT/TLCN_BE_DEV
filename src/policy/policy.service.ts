@@ -2,7 +2,6 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import * as mongoose from 'mongoose';
 import { Policy } from './schema/policy.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 import { MongooseError } from 'mongoose';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';

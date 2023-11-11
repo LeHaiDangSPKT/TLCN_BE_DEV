@@ -3,9 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Product } from './schema/product.schema';
 import { Model, MongooseError, Types } from 'mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 import { Store } from 'src/store/schema/store.schema';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 
 @Injectable()
 export class ProductService {
@@ -32,7 +31,6 @@ export class ProductService {
     async getById(id: string): Promise<Product> {
         try {
             const product = await this.productModel.findById(id)
-            if (!product) { throw new NotFoundExceptionCustom(Product.name) }
             return product
         }
         catch (err) {

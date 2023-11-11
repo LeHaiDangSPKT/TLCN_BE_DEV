@@ -3,9 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Notification } from './schema/notification.schema';
 import { Model, MongooseError } from 'mongoose';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 
 @Injectable()
 export class NotificationService {
@@ -46,7 +45,7 @@ export class NotificationService {
     async update(id: string, updateNoti: UpdateNotificationDto): Promise<boolean> {
         try {
             const notification = await this.notificationModel.findByIdAndUpdate(id, updateNoti)
-            if (!notification) { throw new NotFoundExceptionCustom(Notification.name) }
+            if (!notification) { return false }
             return true
         }
         catch (err) {

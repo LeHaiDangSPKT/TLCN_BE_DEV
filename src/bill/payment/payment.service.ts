@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentGateway, PAYMENT_METHOD } from './payment.gateway';
 import { CreateBillDto } from '../dto/create-bill.dto';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 
 @Injectable()
 export class PaymentService {
@@ -19,7 +18,7 @@ export class PaymentService {
         if (gateway) {
             return await gateway.processPayment(bill);
         } else {
-            throw new NotFoundExceptionCustom("PaymentMethod");
+            return -1
         }
     }
 }

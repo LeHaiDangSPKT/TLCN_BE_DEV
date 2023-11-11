@@ -7,12 +7,11 @@ import { AbilityModule } from 'src/ability/ability.module';
 import { RoleModule } from 'src/role/role.module';
 import { HasPermitRoleMiddleware } from 'src/user/middleware/HasPermitRole.middleware';
 import { HasSameRoleUserMiddleware } from './middleware/HasSameRoleUser.middleware';
-import FreedomCustom from 'src/exceptions/FreedomCustom.exception';
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]), AbilityModule, RoleModule],
   controllers: [UserController],
-  providers: [UserService, FreedomCustom],
+  providers: [UserService],
   exports: [UserService],
 })
 export class UserModule implements NestModule {

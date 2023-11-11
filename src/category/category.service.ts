@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Model, MongooseError } from 'mongoose';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 import { Category } from './schema/category.schema';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 
 @Injectable()
 export class CategoryService {

@@ -5,7 +5,6 @@ import { AbilityModule } from 'src/ability/ability.module';
 import { RoleModule } from 'src/role/role.module';
 import { UserotpService } from './userotp.service';
 import { UserotpController } from './userotp.controller';
-import FreedomCustom from 'src/exceptions/FreedomCustom.exception';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
@@ -16,7 +15,7 @@ import { UserModule } from 'src/user/user.module';
     UserModule,
   ],
   controllers: [UserotpController],
-  providers: [UserotpService, FreedomCustom],
+  providers: [UserotpService],
   exports: [UserotpService],
 })
 export class UserotpModule { }

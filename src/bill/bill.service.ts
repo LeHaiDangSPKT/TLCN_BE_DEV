@@ -1,14 +1,12 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Bill } from './schema/bill.schema';
 import mongoose, { Model, ObjectId, Types, Error as MongooseError } from 'mongoose';
 import { CreateBillDto } from './dto/create-bill.dto';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 import { ProductBillDto } from './dto/product-bill.dto';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 import { User } from 'src/user/schema/user.schema';
-import { Store } from 'src/store/schema/store.schema';
 import { Product } from 'src/product/schema/product.schema';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 
 @Injectable()
 export class BillService {
@@ -86,7 +84,6 @@ export class BillService {
     async getDetailById(id: string): Promise<Bill> {
         try {
             const bill = await this.billModel.findById(id)
-            if (!bill) { throw new NotFoundExceptionCustom(Bill.name) }
             return bill
         }
         catch (err) {
@@ -99,8 +96,7 @@ export class BillService {
     async update(id: string, status: string): Promise<boolean> {
         try{
             const bill = await this.billModel.findByIdAndUpdate({ _id: id }, { status })
-            if(!bill) { throw new NotFoundExceptionCustom(Bill.name) }
-            return true
+            return bill ? true : false
         }
         catch (err) {
             if (err instanceof MongooseError)

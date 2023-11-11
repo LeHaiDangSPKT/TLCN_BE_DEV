@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Evaluation } from './schema/evaluation.schema';
-import { Model, MongooseError, Types } from 'mongoose';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+import { Model, MongooseError } from 'mongoose';
 import { EmojiDto } from './dto/emoji.dto';
-import { throwIfEmpty } from 'rxjs';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+
 
 @Injectable()
 export class EvaluationService {
@@ -28,6 +27,9 @@ export class EvaluationService {
 
     async update(userId: string, productId: string, body: string): Promise<boolean> {
         const evaluation = await this.evaluationModel.findOne({ productId })
+        if (!evaluation) {
+            return false
+        }
         return this.updateEmoji(userId, body, evaluation)
     }
 
@@ -61,7 +63,7 @@ export class EvaluationService {
     async getByProductId(productId: string) : Promise<Evaluation> {
         try {
             const evaluation = await this.evaluationModel.findOne({ productId })
-            if(!evaluation) { throw new NotFoundExceptionCustom(Evaluation.name) }
+            if(!evaluation) { return null }
             return evaluation
         }
         catch (err) {

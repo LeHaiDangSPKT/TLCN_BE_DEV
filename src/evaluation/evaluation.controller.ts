@@ -10,6 +10,8 @@ import { RoleName } from 'src/role/schema/role.schema';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 import { Evaluation } from './schema/evaluation.schema';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { NotFoundException } from 'src/core/error.response';
+import { SuccessResponse } from 'src/core/success.response';
 
 @Controller('evaluation')
 @ApiTags('Evaluation')
@@ -28,9 +30,13 @@ export class EvaluationController {
     @Query('productId') productId: string,
     @Body() body: BodyDto,
     @GetCurrentUserId() userId: string,
-  ): Promise<boolean> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const result = this.evaluationService.update(userId, productId, body.body)
-    return result
+    if(!result) return new NotFoundException("Không tìm thấy sản phẩm này!")
+    return new SuccessResponse({
+      message: "Đánh giá thành công!",
+      metadata: { data: result },
+    })
   }
 
 
@@ -39,8 +45,12 @@ export class EvaluationController {
   @Get()
   async getByProductId(
     @Query('productId') productId: string,
-  ): Promise<Evaluation> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const evaluation = await this.evaluationService.getByProductId(productId)
-    return evaluation
+    if(!evaluation) return new NotFoundException("Không tìm thấy sản phẩm này!")
+    return new SuccessResponse({
+      message: "Lấy danh sách đánh giá thành công!",
+      metadata: { data: evaluation },
+    })
   }
 }

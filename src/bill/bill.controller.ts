@@ -14,6 +14,8 @@ import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorat
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { RoleName } from 'src/role/schema/role.schema';
 import { StoreService } from 'src/store/store.service';
+import { NotFoundException } from 'src/core/error.response';
+import { SuccessResponse } from 'src/core/success.response';
 
 @Controller('bill')
 @ApiTags('Bill')
@@ -39,18 +41,23 @@ export class BillController {
   async create(
     @Body() bill: CreateBillDto,
     @GetCurrentUserId() userId: string,
-  ): Promise<Bill> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const user = await this.userService.getById(userId)
+    if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
     const products = []
     bill.listProductId.map(async (productId) => {
       const product = await this.productService.getById(productId)
+      if(!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
       products.push(product)
     })
     const newBill = await this.billService.create(user, products, bill)
     await this.userService.updateWallet(userId, newBill.totalPrice, "plus")
     const result = await this.paymentService.processPayment(bill, bill.paymentMethod)
-    console.log(result)
-    return newBill
+    if(result === -1) return new NotFoundException("Không tìm thấy phương thức thanh toán này!")
+    return new SuccessResponse({
+      message: "Đặt hàng thành công!",
+      metadata: { data: newBill },
+    })
   }
 
 
@@ -68,9 +75,12 @@ export class BillController {
     @Query('search') search: string,
     @Query('status') status: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<{ total: number, bills: Bill[] }> {
+  ): Promise<SuccessResponse> {
     const data = await this.billService.getAllByStatus({ userId: userId }, page, limit, search, status)
-    return data
+    return new SuccessResponse({
+      message: "Lấy danh sách đơn hàng thành công!",
+      metadata: { data: data },
+    })
   }
 
 
@@ -88,10 +98,14 @@ export class BillController {
     @Query('search') search: string,
     @Query('status') status: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<{ total: number, bills: Bill[] }> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
+    if(!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const data = await this.billService.getAllByStatus({ storeId: store._id }, page, limit, search, status)
-    return data
+    return new SuccessResponse({
+      message: "Lấy danh sách đơn hàng thành công!",
+      metadata: { data: data },
+    })
   }
 
 
@@ -101,9 +115,13 @@ export class BillController {
   @Get('user/:id')
   async getDetailById(
     @Param('id') id: string
-  ): Promise<Bill> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
-    return bill
+    if(!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
+    return new SuccessResponse({
+      message: "Lấy thông tin đơn hàng thành công!",
+      metadata: { data: bill },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
@@ -113,11 +131,15 @@ export class BillController {
   async cancelBill(
     @Param('id') id: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<boolean> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
     const result = await this.billService.update(id, "Đã hủy")
+    if(!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
     await this.userService.updateWallet(userId, bill.totalPrice, "sub")
-    return result
+    return new SuccessResponse({
+      message: "Hủy đơn hàng thành công!",
+      metadata: { data: result },
+    })
   }
 
 
@@ -130,16 +152,21 @@ export class BillController {
     @Param('id') id: string,
     @Query('status') status: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<boolean> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
+    if(!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
     const result = await this.billService.update(id, status)
+    if(!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
     if (status === "Đã hủy")
       await this.userService.updateWallet(userId, bill.totalPrice, "sub")
     if (status === "Đã hoàn đơn") {
       await this.userService.updateWallet(userId, bill.totalPrice, "sub")
       await this.userService.updateWallet(userId, bill.totalPrice * 5, "plus")
     }
-    return result
+    return new SuccessResponse({
+      message: "Cập nhật trạng thái đơn hàng thành công!",
+      metadata: { data: result },
+    })
   }
 
 
@@ -155,9 +182,13 @@ export class BillController {
     @Query('endTime') endTime: string,
     @Query('type') type: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<Bill[]> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
+    if(!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const data = await this.billService.getStatistic(store._id, startTime, endTime, type)
-    return data
+    return new SuccessResponse({
+      message: "Lấy thống kê thành công!",
+      metadata: { data: data },
+    })
   }
 }

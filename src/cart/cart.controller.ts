@@ -4,12 +4,13 @@ import { ApiBearerAuth, ApiTags, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateCartAbility } from 'src/ability/decorators/abilities.decorator';
 import { Request } from 'express';
-import mongoose, { Types } from 'mongoose';
 import { Cart } from './schema/cart.schema';
 import { ProductService } from 'src/product/product.service';
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { RoleName } from 'src/role/schema/role.schema';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
+import { SuccessResponse } from 'src/core/success.response';
+import { ConflicException, NotFoundException } from 'src/core/error.response';
 
 @Controller('cart/user')
 @ApiTags('Cart')
@@ -29,10 +30,15 @@ export class CartController {
     @Req() req: Request,
     @Query('productId') productId: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<Cart> {
+  ): Promise<SuccessResponse | ConflicException> {
     const product = await this.productService.getById(productId)
+    if(!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
     const result = await this.cartService.addProductIntoCart(userId, product)
-    return result
+    if(!result) return new ConflicException("Sản phẩm này đã có trong giỏ hàng!")
+    return new SuccessResponse({
+      message: "Thêm sản phẩm vào giỏ hàng thành công!",
+      metadata: { data: result },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
@@ -47,9 +53,12 @@ export class CartController {
     @Query('limit') limit: number,
     @Query('search') search: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<{ total: number, carts: Cart[] }> {
+  ): Promise<SuccessResponse> {
     const data = await this.cartService.getByUserId(userId, page, limit, search)
-    return data
+    return new SuccessResponse({
+      message: "Lấy danh sách giỏ hàng thành công!",
+      metadata: { data },
+    })
   }
 
 }

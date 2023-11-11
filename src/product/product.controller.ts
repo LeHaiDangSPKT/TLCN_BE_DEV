@@ -12,6 +12,8 @@ import { RoleName } from 'src/role/schema/role.schema';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { NotFoundException } from 'src/core/error.response';
+import { SuccessResponse } from 'src/core/success.response';
 
 
 @Controller('product')
@@ -31,12 +33,18 @@ export class ProductController {
   async create(
     @Body() product: CreateProductDto,
     @GetCurrentUserId() userId: string,
-  ): Promise<Product> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const newProduct = await this.productService.create(store, product)
     await this.evaluationService.create(newProduct._id)
-    return newProduct
+    return new SuccessResponse({
+      message: "Tạo sản phẩm thành công!",
+      metadata: { data: newProduct },
+    })
   }
+
+  // để tạo nhiều data một lúc (để test)
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new CreateProductAbility())
   @CheckRole(RoleName.SELLER)
@@ -44,13 +52,16 @@ export class ProductController {
   async sellerCreateMultiple(
     @Body() products: CreateProductDto[],
     @GetCurrentUserId() userId: string,
-  ): Promise<void> {
+  ): Promise<void | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     products.forEach(async product => {
       const newProduct = await this.productService.create(store, product)
       await this.evaluationService.create(newProduct._id)
     })
   }
+
+
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new ReadProductAbility())
   @CheckRole(RoleName.SELLER)
@@ -63,10 +74,14 @@ export class ProductController {
     @Query('limit') limit: number,
     @Query('search') search: string,
     @GetCurrentUserId() userId: string,
-  ) {
+  ) : Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const products = await this.productService.getAllBySearch(store._id, page, limit, search)
-    return products
+    return new SuccessResponse({
+      message: "Lấy danh sách sản phẩm thành công!",
+      metadata: { data: products },
+    })
   }
 
 
@@ -79,9 +94,12 @@ export class ProductController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-  ) {
+  ) : Promise<SuccessResponse> {
     const products = await this.productService.getAllBySearch(null, page, limit, search)
-    return products
+    return new SuccessResponse({
+      message: "Lấy danh sách sản phẩm thành công!",
+      metadata: { data: products },
+    })
   }
 
 
@@ -92,9 +110,13 @@ export class ProductController {
   async update(
     @Param('id') id: string,
     @Body() product: UpdateProductDto,
-  ): Promise<Product> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const newProduct = await this.productService.update(id, product)
-    return newProduct
+    if (!newProduct) return new NotFoundException("Không tìm thấy sản phẩm này!")
+    return new SuccessResponse({
+      message: "Cập nhật sản phẩm thành công!",
+      metadata: { data: newProduct },
+    })
   }
 
 
@@ -103,9 +125,12 @@ export class ProductController {
   @ApiQuery({ name: 'limit', type: Number, required: false })
   async getlistProductLasted(
     @Query('limit') limit: number,
-  ): Promise<Product[]> {
+  ): Promise<SuccessResponse> {
     const products = await this.productService.getlistProductLasted(limit)
-    return products
+    return new SuccessResponse({
+      message: "Lấy danh sách sản phẩm thành công!",
+      metadata: { data: products },
+    })
   }
 
   @Public()
@@ -113,18 +138,25 @@ export class ProductController {
   @ApiQuery({ name: 'limit', type: Number, required: false })
   async mostProductsInStore(
     @Query('limit') limit: number,
-  ): Promise<Product[]> {
+  ): Promise<SuccessResponse> {
     const products = await this.productService.mostProductsInStore(limit)
-    return products
+    return new SuccessResponse({
+      message: "Lấy danh sách sản phẩm thành công!",
+      metadata: { data: products },
+    })
   }
 
   @Public()
   @Get('/:id')
   async getById(
     @Param('id') id: string
-  ): Promise<Product> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const product = await this.productService.getById(id)
-    return product
+    if (!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
+    return new SuccessResponse({
+      message: "Lấy thông tin sản phẩm thành công!",
+      metadata: { data: product },
+    })
   }
 
 
@@ -132,8 +164,12 @@ export class ProductController {
   @CheckAbilities(new DeleteProductAbility())
   @CheckRole(RoleName.MANAGER)
   @Put('manager/deleteProduct/:id')
-  async deleteProduct(@Param('id') id: string): Promise<Product> {
+  async deleteProduct(@Param('id') id: string): Promise<SuccessResponse | NotFoundException> {
     const store = await this.productService.deleteProduct(id);
-    return store
+    if (!store) return new NotFoundException("Không tìm thấy sản phẩm này!")
+    return new SuccessResponse({
+      message: "Xóa sản phẩm thành công!",
+      metadata: { data: store },
+    })
   }
 }

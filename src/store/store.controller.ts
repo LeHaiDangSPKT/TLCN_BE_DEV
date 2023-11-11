@@ -13,6 +13,8 @@ import { RoleName } from 'src/role/schema/role.schema';
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { BadRequestException, ConflicException, NotFoundException } from 'src/core/error.response';
+import { SuccessResponse } from 'src/core/success.response';
 
 @Controller('store')
 @ApiTags('Store')
@@ -31,11 +33,17 @@ export class StoreController {
   async create(
     @Body() store: CreateStoreDto,
     @GetCurrentUserId() userId: string,
-  ): Promise<Store> {
+  ): Promise<SuccessResponse | NotFoundException | ConflicException | BadRequestException> {
     const user = await this.userService.getById(userId)
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
     const newStore = await this.storeService.create(user, store)
-    await this.roleService.addUserToRole(userId, { name: RoleName.SELLER })
-    return newStore
+    if (!newStore) return new ConflicException("Người dùng này đã có cửa hàng!")
+    const resultAddRole = await this.roleService.addUserToRole(userId, { name: RoleName.SELLER })
+    if (!resultAddRole) return new BadRequestException("Thêm quyền thất bại!")
+    return new SuccessResponse({
+      message: "Tạo cửa hàng thành công!",
+      metadata: { data: newStore },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
@@ -44,9 +52,13 @@ export class StoreController {
   @Get('user/:id')
   async getById(
     @Param('id') id: string
-  ): Promise<Store> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getById(id)
-    return store
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+    return new SuccessResponse({
+      message: "Lấy thông tin cửa hàng thành công!",
+      metadata: { data: store },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
@@ -55,9 +67,13 @@ export class StoreController {
   @Get('seller')
   async getMyStore(
     @GetCurrentUserId() userId: string,
-  ): Promise<Store> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
-    return store
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+    return new SuccessResponse({
+      message: "Lấy thông tin cửa hàng thành công!",
+      metadata: { data: store },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
@@ -67,9 +83,13 @@ export class StoreController {
   async update(
     @Body() store: UpdateStoreDto,
     @GetCurrentUserId() userId: string,
-  ): Promise<Store> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const newStore = await this.storeService.update(userId, store)
-    return newStore
+    if (!newStore) return new NotFoundException("Không tìm thấy cửa hàng này!")
+    return new SuccessResponse({
+      message: "Cập nhật thông tin cửa hàng thành công!",
+      metadata: { data: newStore },
+    })
   }
 
 
@@ -79,19 +99,28 @@ export class StoreController {
   @Delete('seller')
   async delete(
     @GetCurrentUserId() userId: string,
-  ): Promise<boolean> {
-    await this.storeService.delete(userId)
+  ): Promise<SuccessResponse | NotFoundException | BadRequestException> {
+    const result = await this.storeService.delete(userId)
+    if (!result) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const isDeleted = await this.roleService.removeUserRole(userId, RoleName.SELLER)
-    return isDeleted
+    if (!isDeleted) return new BadRequestException("Xóa quyền thất bại!")
+    return new SuccessResponse({
+      message: "Xóa cửa hàng thành công!",
+      metadata: { data: result },
+    })
   }
 
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new UpdateStoreAbility())
   @CheckRole(RoleName.MANAGER)
   @Put('manager/warningcount/:id')
-  async updateWarningCount(@Param('id') id: string, @Param("action") action: string): Promise<Store> {
+  async updateWarningCount(@Param('id') id: string, @Param("action") action: string): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.updateWarningCount(id, action);
-    return store
+    if (!store) throw new NotFoundException("Không tìm thấy cửa hàng này!")
+    return new SuccessResponse({
+      message: "Cập nhật cảnh báo thành công!",
+      metadata: { data: store },
+    })
   }
 
 }

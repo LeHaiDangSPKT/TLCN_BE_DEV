@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundExceptionCustom } from 'src/exceptions/NotFoundExceptionCustom.exception';
 import { Model, MongooseError, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart } from './schema/cart.schema';
 import { CreateCartDto } from './dto/cart-create.dto';
-import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 import { ProductBillDto } from 'src/bill/dto/product-bill.dto';
 import { Product } from 'src/product/schema/product.schema';
-import { ConflictExceptionCustom } from 'src/exceptions/ConflictExceptionCustom.exception';
+import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 
 @Injectable()
 export class CartService {
@@ -83,7 +81,7 @@ export class CartService {
         }
     }
 
-    async addProductIntoCart(userId: string, product: Product): Promise<Cart> {
+    async addProductIntoCart(userId: string, product: Product): Promise<Cart | boolean> {
         const allCart = await this.getAllByUserId(userId)
         if (!allCart) {
             const newCart = await this.create(userId, product)
@@ -97,7 +95,7 @@ export class CartService {
             }
             else {
                 const hasProduct = cart.listProducts.find(productCart => productCart.productId.toString() === product._id.toString())
-                if(hasProduct) { throw new ConflictExceptionCustom(Product.name) }
+                if(hasProduct) { return false }
                 const updatedCart = await this.update(product, cart)
                 return updatedCart
             }
