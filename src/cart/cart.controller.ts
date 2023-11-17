@@ -66,7 +66,7 @@ export class CartController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new ReadCartAbility())
   @CheckRole(RoleName.USER)
-  @Get()
+  @Get('/getAll')
   async getAllByUserId(
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse> {
