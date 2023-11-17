@@ -13,13 +13,10 @@ export class StoreService {
         private readonly storeModel: Model<Store>
     ) { }
 
-async create(user: User, store: CreateStoreDto): Promise<Store | boolean> {
+    async create(userId: string, store: CreateStoreDto): Promise<Store | boolean> {
         try {
-            const hasStore = await this.storeModel.findOne({ userId: user._id })
-            if (hasStore) { return false } // throw new ConflictExceptionCustom(Store.name)
             const newStore = await this.storeModel.create(store)
-            newStore.userId = user._id
-            newStore.phone = [user.phone]
+            newStore.userId = userId
             await newStore.save()
             return newStore
         }

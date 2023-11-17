@@ -29,7 +29,7 @@ export class CartService {
             cart.userId = userId
             cart.storeId = product.storeId
             cart.storeAvatar = store.avatar
-            cart.storeName = store.storeName
+            cart.storeName = store.name
             const productInfo = new ProductBillDto()
             productInfo.avatar = product.avatar
             productInfo.productId = product._id

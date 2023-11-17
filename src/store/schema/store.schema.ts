@@ -12,7 +12,7 @@ export class Store extends Document {
     avatar: string;
 
     @Prop()
-    storeName: string;
+    name: string;
 
     @Prop()
     address: string;

@@ -3,18 +3,17 @@ import { IsEmail, IsNotEmpty, IsNumberString, MinLength } from "class-validator"
 
 export class UpdateStoreDto {
     @ApiProperty()
-    @IsNotEmpty()
     avatar: string;
 
     @ApiProperty()
-    @IsNotEmpty()
-    storeName: string;
+    name: string;
 
     @ApiProperty()
-    @IsNotEmpty()
+    description: string;
+
+    @ApiProperty()
     address: string;
 
     @ApiProperty({type: [String]})
-    @IsNotEmpty()
-    phone: string[];
+    phoneNumber: string[];
 }

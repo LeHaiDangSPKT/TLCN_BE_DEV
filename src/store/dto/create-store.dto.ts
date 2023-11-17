@@ -8,9 +8,17 @@ export class CreateStoreDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    storeName: string;
+    name: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    description: string;
 
     @ApiProperty()
     @IsNotEmpty()
     address: string;
+
+    @ApiProperty({type: [String]})
+    @IsNotEmpty()
+    phoneNumber: string[];
 }

@@ -34,7 +34,7 @@ export class BillService {
             newBill.phone = user.phone
             newBill.address = bill.address
             newBill.storeId = store._id
-            newBill.storeName = store.storeName
+            newBill.storeName = store.name
             newBill.listProducts = products.map(product => {
                 const productBill = new ProductBillDto()
                 productBill.avatar = product.avatar

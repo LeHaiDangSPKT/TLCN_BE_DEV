@@ -63,6 +63,7 @@ export class AuthController {
     const user = await this.userService.getByEmail(loginDto.email)
     if (!user) return new BadRequestException("Email hoặc mật khẩu không chính xác!")
     const { password, ...userWithoutPass } = user['_doc']
+
     const isMatch = await this.authService.compareData(loginDto.password, password)
     if (!isMatch) return new BadRequestException("Email hoặc mật khẩu không chính xác!")
     const payload = { userId: user._id }
