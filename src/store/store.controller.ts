@@ -36,10 +36,16 @@ export class StoreController {
   ): Promise<SuccessResponse | NotFoundException | ConflicException | BadRequestException> {
     const user = await this.userService.getById(userId)
     if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
+    const hasStore = await this.storeService.getByUserId(userId)
+    if (hasStore) return new ConflicException("Người dùng này đã có cửa hàng!")
+
     const newStore = await this.storeService.create(user, store)
-    if (!newStore) return new ConflicException("Người dùng này đã có cửa hàng!")
+    if (!newStore) return new BadRequestException("Tạo cửa hàng thất bại!")
+
     const resultAddRole = await this.roleService.addUserToRole(userId, { name: RoleName.SELLER })
     if (!resultAddRole) return new BadRequestException("Thêm quyền thất bại!")
+    
     return new SuccessResponse({
       message: "Tạo cửa hàng thành công!",
       metadata: { data: newStore },

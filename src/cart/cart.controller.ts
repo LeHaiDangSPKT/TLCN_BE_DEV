@@ -4,13 +4,13 @@ import { ApiBearerAuth, ApiTags, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateCartAbility, ReadCartAbility } from 'src/ability/decorators/abilities.decorator';
 import { Request } from 'express';
-import { Cart } from './schema/cart.schema';
 import { ProductService } from 'src/product/product.service';
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { RoleName } from 'src/role/schema/role.schema';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 import { SuccessResponse } from 'src/core/success.response';
 import { ConflicException, NotFoundException } from 'src/core/error.response';
+import { StoreService } from 'src/store/store.service';
 
 @Controller('cart/user')
 @ApiTags('Cart')
@@ -19,6 +19,7 @@ export class CartController {
   constructor(
     private readonly cartService: CartService,
     private readonly productService: ProductService,
+    private readonly storeService: StoreService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -31,10 +32,16 @@ export class CartController {
     @Query('productId') productId: string,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | ConflicException> {
+
     const product = await this.productService.getById(productId)
     if (!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
-    const result = await this.cartService.addProductIntoCart(userId, product)
+
+    const store = await this.storeService.getById(product.storeId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    const result = await this.cartService.addProductIntoCart(userId, store, product)
     if (!result) return new ConflicException("Sản phẩm này đã có trong giỏ hàng!")
+
     return new SuccessResponse({
       message: "Thêm sản phẩm vào giỏ hàng thành công!",
       metadata: { data: result },
@@ -66,7 +73,7 @@ export class CartController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new ReadCartAbility())
   @CheckRole(RoleName.USER)
-  @Get('/getAll')
+  @Get('/get-all')
   async getAllByUserId(
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse> {

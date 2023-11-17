@@ -44,16 +44,23 @@ export class BillController {
   ): Promise<SuccessResponse | NotFoundException> {
     const user = await this.userService.getById(userId)
     if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
     const products = []
     bill.listProductId.map(async (productId) => {
       const product = await this.productService.getById(productId)
       if(!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
       products.push(product)
     })
-    const newBill = await this.billService.create(user, products, bill)
+
+    const store = await this.storeService.getById(products[0]?.storeId)
+
+    const newBill = await this.billService.create(user, store, products, bill)
+
     await this.userService.updateWallet(userId, newBill.totalPrice, "plus")
+
     const result = await this.paymentService.processPayment(bill, bill.paymentMethod)
     if(result === -1) return new NotFoundException("Không tìm thấy phương thức thanh toán này!")
+
     return new SuccessResponse({
       message: "Đặt hàng thành công!",
       metadata: { data: newBill },

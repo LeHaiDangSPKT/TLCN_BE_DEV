@@ -17,7 +17,6 @@ export class ProductService {
         try {
             const newProduct = await this.productModel.create(product)
             newProduct.storeId = store._id
-            newProduct.storeName = store.storeName
             await newProduct.save()
             return newProduct
         }
@@ -124,7 +123,7 @@ export class ProductService {
             const storeIds = products.map(product => product._id)
             var arr = []
             for (let i = 0; i < storeIds.length; i++) {
-                const product = await this.productModel.find({ storeId: storeIds[i] }, { _id: 1, avatar: 1, quantity: 1, productName: 1, price: 1, storeName: 1, storeId: 1, type: 1 }).limit(10)
+                const product = await this.productModel.find({ storeId: storeIds[i] }, { _id: 1, avatar: 1, quantity: 1, productName: 1, price: 1, storeId: 1, type: 1 }).limit(10)
                 arr.push(product)
             }
             return arr

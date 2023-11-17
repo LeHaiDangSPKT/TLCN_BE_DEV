@@ -6,6 +6,7 @@ import { CreateCartDto } from './dto/cart-create.dto';
 import { ProductBillDto } from 'src/bill/dto/product-bill.dto';
 import { Product } from 'src/product/schema/product.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+import { Store } from 'src/store/schema/store.schema';
 
 @Injectable()
 export class CartService {
@@ -22,12 +23,13 @@ export class CartService {
         return totalPrice
     }
 
-    async create(userId: string, product: Product): Promise<Cart> {
+    async create(userId: string, store: Store, product: Product): Promise<Cart> {
         try {
             const cart = new CreateCartDto()
             cart.userId = userId
             cart.storeId = product.storeId
-            cart.storeName = product.storeName
+            cart.storeAvatar = store.avatar
+            cart.storeName = store.storeName
             const productInfo = new ProductBillDto()
             productInfo.avatar = product.avatar
             productInfo.productId = product._id
@@ -81,16 +83,16 @@ export class CartService {
         }
     }
 
-    async addProductIntoCart(userId: string, product: Product): Promise<Cart | boolean> {
+    async addProductIntoCart(userId: string, store: Store, product: Product): Promise<Cart | boolean> {
         const allCart = await this.getAllByUserId(userId)
         if (!allCart) {
-            const newCart = await this.create(userId, product)
+            const newCart = await this.create(userId, store, product)
             return newCart
         }
         else {
             const cart = allCart.find(cart => cart.storeId.toString() === product.storeId.toString())
             if (!cart) {
-                const newCart = await this.create(userId, product)
+                const newCart = await this.create(userId, store, product)
                 return newCart
             }
             else {

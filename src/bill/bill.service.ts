@@ -7,6 +7,7 @@ import { ProductBillDto } from './dto/product-bill.dto';
 import { User } from 'src/user/schema/user.schema';
 import { Product } from 'src/product/schema/product.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+import { Store } from 'src/store/schema/store.schema';
 
 @Injectable()
 export class BillService {
@@ -24,7 +25,7 @@ export class BillService {
         return totalPrice
     }
 
-    async create(user: User, products: Product[], bill: CreateBillDto): Promise<Bill> {
+    async create(user: User, store: Store, products: Product[], bill: CreateBillDto): Promise<Bill> {
         try {
             const newBill = await this.billModel.create(bill)
             newBill.userId = user._id
@@ -32,8 +33,8 @@ export class BillService {
             newBill.email = user.email
             newBill.phone = user.phone
             newBill.address = bill.address
-            newBill.storeId = products[0].storeId
-            newBill.storeName = products[0].storeName
+            newBill.storeId = store._id
+            newBill.storeName = store.storeName
             newBill.listProducts = products.map(product => {
                 const productBill = new ProductBillDto()
                 productBill.avatar = product.avatar

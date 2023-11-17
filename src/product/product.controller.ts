@@ -4,7 +4,6 @@ import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateProductAbility, DeleteProductAbility, ReadProductAbility, UpdateProductAbility } from 'src/ability/decorators/abilities.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
-import { Product } from './schema/product.schema';
 import { StoreService } from 'src/store/store.service';
 import { EvaluationService } from 'src/evaluation/evaluation.service';
 import { CheckRole } from 'src/ability/decorators/role.decorator';

@@ -14,6 +14,7 @@ import { StoreModule } from 'src/store/store.module';
     AbilityModule,
     RoleModule,
     ProductModule,
+    StoreModule,
   ],
   controllers: [CartController],
   providers: [CartService],

@@ -34,9 +34,6 @@ export class Product extends Document {
 
     @Prop()
     storeId: string;
-
-    @Prop()
-    storeName: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

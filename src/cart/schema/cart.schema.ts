@@ -13,6 +13,9 @@ export class Cart extends Document {
     storeId: string;
 
     @Prop()
+    storeAvatar: string;
+
+    @Prop()
     storeName: string;
 
     @Prop({ type: [Object] })

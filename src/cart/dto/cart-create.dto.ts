@@ -11,6 +11,9 @@ export class CreateCartDto {
     storeId: string;
 
     @IsNotEmpty()
+    storeAvatar: string;
+
+    @IsNotEmpty()
     storeName: string;
 
     @IsNotEmpty()
