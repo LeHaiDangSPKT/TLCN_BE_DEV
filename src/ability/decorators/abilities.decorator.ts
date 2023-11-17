@@ -100,6 +100,11 @@ export class CreateCartAbility implements RequiredRule {
     subject = Cart;
 }
 
+export class ReadCartAbility implements RequiredRule {
+    action = Action.Read;
+    subject = Cart;
+}
+
 // Store
 export class CreateStoreAbility implements RequiredRule {
     action = Action.Create;
