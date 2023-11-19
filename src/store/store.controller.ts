@@ -1,11 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { StoreService } from './store.service';
-import { Store } from './schema/store.schema';
-import { Request } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateBillAbility, CreateStoreAbility, DeleteStoreAbility, ReadStoreAbility, UpdateStoreAbility } from 'src/ability/decorators/abilities.decorator';
-import { Types } from 'mongoose';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UserService } from 'src/user/user.service';
 import { RoleService } from 'src/role/role.service';
@@ -15,9 +12,7 @@ import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorat
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { BadRequestException, ConflicException, NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
-import { Public } from 'src/auth/decorators/public.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+
 
 @Controller('store')
 @ApiTags('Store')
@@ -27,7 +22,6 @@ export class StoreController {
     private readonly storeService: StoreService,
     private readonly userService: UserService,
     private readonly roleService: RoleService,
-    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -73,7 +67,7 @@ export class StoreController {
 
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new ReadStoreAbility())
-  @CheckRole(RoleName.SELLER)
+  @CheckRole(RoleName.SELLER, RoleName.USER)
   @Get('seller')
   async getMyStore(
     @GetCurrentUserId() userId: string,
@@ -130,25 +124,6 @@ export class StoreController {
     return new SuccessResponse({
       message: "Cập nhật cảnh báo thành công!",
       metadata: { data: store },
-    })
-  }
-
-  @Public()
-  @ApiConsumes('multipart/form-data')
-  @ApiCreatedResponse({
-    description: 'The file has been uploaded successfully to cloudinary'
-  })
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  uploadImage(
-    @UploadedFile() file: Express.Multer.File
-  ) {
-    const resUpload = this.cloudinaryService.uploadFile(file)
-    var fileInfo = null
-    resUpload.then((res) => {fileInfo = res})
-    return new SuccessResponse({
-      message: "Upload file thành công!",
-      metadata: { data: fileInfo },
     })
   }
 

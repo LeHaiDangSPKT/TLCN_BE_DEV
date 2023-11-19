@@ -18,7 +18,7 @@ export class Store extends Document {
     address: string;
 
     @Prop({types: [String]})
-    phone: string[];
+    phoneNumber: string[];
 
     @Prop()
     description: string;

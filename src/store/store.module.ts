@@ -14,7 +14,6 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
     AbilityModule,
     RoleModule,
     UserModule,
-    CloudinaryModule
   ],
   controllers: [StoreController],
   providers: [StoreService],
