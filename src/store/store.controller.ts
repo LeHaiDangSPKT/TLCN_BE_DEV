@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { Store } from './schema/store.schema';
 import { Request } from 'express';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateBillAbility, CreateStoreAbility, DeleteStoreAbility, ReadStoreAbility, UpdateStoreAbility } from 'src/ability/decorators/abilities.decorator';
 import { Types } from 'mongoose';
@@ -15,6 +15,9 @@ import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorat
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { BadRequestException, ConflicException, NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('store')
 @ApiTags('Store')

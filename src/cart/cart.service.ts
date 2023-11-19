@@ -153,8 +153,7 @@ export class CartService {
             const cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
             cart.listProducts = cart.listProducts.filter(product => product.productId.toString() !== productId)
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
-            await cart.save()
-            return cart
+            return await this.cartModel.findByIdAndUpdate(cart._id, cart)
         }
         catch (err) {
             if (err instanceof MongooseError)

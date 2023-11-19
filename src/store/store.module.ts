@@ -6,13 +6,14 @@ import { StoreSchema } from './schema/store.schema';
 import { AbilityModule } from 'src/ability/ability.module';
 import { RoleModule } from 'src/role/role.module';
 import { UserModule } from 'src/user/user.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Store', schema: StoreSchema }]),
     AbilityModule,
     RoleModule,
-    UserModule,
+    UserModule
   ],
   controllers: [StoreController],
   providers: [StoreService],
