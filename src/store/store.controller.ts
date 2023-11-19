@@ -27,6 +27,7 @@ export class StoreController {
     private readonly storeService: StoreService,
     private readonly userService: UserService,
     private readonly roleService: RoleService,
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -129,6 +130,25 @@ export class StoreController {
     return new SuccessResponse({
       message: "Cập nhật cảnh báo thành công!",
       metadata: { data: store },
+    })
+  }
+
+  @Public()
+  @ApiConsumes('multipart/form-data')
+  @ApiCreatedResponse({
+    description: 'The file has been uploaded successfully to cloudinary'
+  })
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadImage(
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    const resUpload = this.cloudinaryService.uploadFile(file)
+    var fileInfo = null
+    resUpload.then((res) => {fileInfo = res})
+    return new SuccessResponse({
+      message: "Upload file thành công!",
+      metadata: { data: fileInfo },
     })
   }
 

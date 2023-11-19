@@ -13,7 +13,8 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
     MongooseModule.forFeature([{ name: 'Store', schema: StoreSchema }]),
     AbilityModule,
     RoleModule,
-    UserModule
+    UserModule,
+    CloudinaryModule
   ],
   controllers: [StoreController],
   providers: [StoreService],
