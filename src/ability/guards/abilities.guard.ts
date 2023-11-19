@@ -38,6 +38,7 @@ export class AbilitiesGuard implements CanActivate {
             rules.forEach(rule => {
                 ForbiddenError.from(ability).throwUnlessCan(rule.action, rule.subject)
             })
+
             return true
         }
         catch (error) {

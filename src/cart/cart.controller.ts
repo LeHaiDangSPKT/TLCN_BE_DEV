@@ -1,15 +1,15 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { ApiBearerAuth, ApiTags, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
-import { CheckAbilities, CreateCartAbility, ReadCartAbility } from 'src/ability/decorators/abilities.decorator';
+import { CheckAbilities, CreateCartAbility, ReadCartAbility, UpdateCartAbility } from 'src/ability/decorators/abilities.decorator';
 import { Request } from 'express';
 import { ProductService } from 'src/product/product.service';
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { RoleName } from 'src/role/schema/role.schema';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 import { SuccessResponse } from 'src/core/success.response';
-import { ConflicException, NotFoundException } from 'src/core/error.response';
+import { BadRequestException, ConflicException, InternalServerErrorException, NotFoundException } from 'src/core/error.response';
 import { StoreService } from 'src/store/store.service';
 
 @Controller('cart/user')
@@ -28,7 +28,6 @@ export class CartController {
   @Post()
   @ApiQuery({ name: 'productId', type: String, required: true })
   async processCart(
-    @Req() req: Request,
     @Query('productId') productId: string,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | ConflicException> {
@@ -40,7 +39,7 @@ export class CartController {
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
 
     const result = await this.cartService.addProductIntoCart(userId, store, product)
-    if (!result) return new ConflicException("Sản phẩm này đã có trong giỏ hàng!")
+    if (!result) return new InternalServerErrorException("Không thêm sản phẩm vào giỏ hàng được!")
 
     return new SuccessResponse({
       message: "Thêm sản phẩm vào giỏ hàng thành công!",
@@ -80,6 +79,30 @@ export class CartController {
     const data = await this.cartService.getAllByUserId(userId)
     return new SuccessResponse({
       message: "Lấy danh sách giỏ hàng thành công!",
+      metadata: { data },
+    })
+  }
+
+  @UseGuards(AbilitiesGuard)
+  @CheckAbilities(new UpdateCartAbility())
+  @CheckRole(RoleName.USER)
+  @ApiQuery({ name: 'productId', type: String, required: true })
+  @Delete()
+  async removeProductInCart (
+    @Query('productId') productId: string,
+    @GetCurrentUserId() userId: string,
+  ): Promise<SuccessResponse | NotFoundException> {
+
+    const product = await this.productService.getById(productId)
+    if (!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
+
+    const store = await this.storeService.getById(product.storeId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    const data = await this.cartService.removeProductInCart(userId, productId, store._id)
+
+    return new SuccessResponse({
+      message: "Xóa sản phẩm khỏi giỏ hàng thành công!",
       metadata: { data },
     })
   }

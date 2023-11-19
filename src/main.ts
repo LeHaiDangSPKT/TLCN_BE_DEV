@@ -5,8 +5,12 @@ import { createDocument } from './swagger/swagger';
 import { ValidationPipe } from '@nestjs/common';
 declare const module: any;
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: "*",
+      credentials: true,
+    },
+  });
   app.setGlobalPrefix('/api');
   SwaggerModule.setup('api', app, createDocument(app), {
     swaggerOptions: {

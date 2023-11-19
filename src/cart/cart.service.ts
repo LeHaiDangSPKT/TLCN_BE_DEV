@@ -83,6 +83,25 @@ export class CartService {
         }
     }
 
+    async updateQuantity(product: Product, cart: Cart): Promise<Cart> {
+        try {
+            cart.listProducts.map(productCart => {
+                if (productCart.productId.toString() === product._id.toString()) {
+                    productCart.quantity += 10
+                }
+                return productCart
+            })
+            cart.totalPrice = this.getTotalPrice(cart.listProducts)
+
+            return await this.cartModel.findByIdAndUpdate(cart._id, cart)
+        }
+        catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
     async addProductIntoCart(userId: string, store: Store, product: Product): Promise<Cart | boolean> {
         const allCart = await this.getAllByUserId(userId)
         if (!allCart) {
@@ -97,8 +116,7 @@ export class CartService {
             }
             else {
                 const hasProduct = cart.listProducts.find(productCart => productCart.productId.toString() === product._id.toString())
-                if(hasProduct) { return false }
-                const updatedCart = await this.update(product, cart)
+                const updatedCart = hasProduct ? await this.updateQuantity(product, cart) : await this.update(product, cart)
                 return updatedCart
             }
         }
@@ -121,6 +139,22 @@ export class CartService {
             const total = await this.cartModel.countDocuments({ ...search, userId })
             const carts = await this.cartModel.find({ ...search, userId }).limit(limit).skip(skip)
             return { total, carts }
+        }
+        catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+    async removeProductInCart(userId: string, productId: string, storeId: string): Promise<Cart> {
+        try {
+            const allCart = await this.getAllByUserId(userId)
+            const cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
+            cart.listProducts = cart.listProducts.filter(product => product.productId.toString() !== productId)
+            cart.totalPrice = this.getTotalPrice(cart.listProducts)
+            await cart.save()
+            return cart
         }
         catch (err) {
             if (err instanceof MongooseError)
