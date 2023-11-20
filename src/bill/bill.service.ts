@@ -32,7 +32,7 @@ export class BillService {
             newBill.fullName = user.fullName
             newBill.email = user.email
             newBill.phone = user.phone
-            newBill.address = bill.address
+            //newBill.address = bill.address
             newBill.storeId = store._id
             newBill.storeName = store.name
             newBill.listProducts = products.map(product => {
@@ -45,7 +45,7 @@ export class BillService {
                 productBill.type = product.type
                 return productBill
             })
-            newBill.totalPrice = this.getTotalPrice(newBill.listProducts, bill.promotionValue)
+            newBill.totalPrice = this.getTotalPrice(newBill.listProducts, 0)
             await newBill.save()
             return newBill
         }

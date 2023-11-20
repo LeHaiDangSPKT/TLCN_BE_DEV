@@ -10,19 +10,6 @@ export class CreateBillDto {
     @IsNotEmpty()
     listProductId: string[];
 
-    @ApiProperty()
-    @IsNotEmpty()
-    address: string;
-
-    @ApiProperty()
-    promotionId: string;
-
-    @ApiProperty()
-    promotionName: string;
-
-    @ApiProperty()
-    promotionValue: number;
-
     @ApiProperty({ type: String })
     @IsNotEmpty()
     paymentMethod: PAYMENT_METHOD;

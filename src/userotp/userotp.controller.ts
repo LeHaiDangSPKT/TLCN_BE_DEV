@@ -24,27 +24,33 @@ export class UserotpController {
   @Public()
   @Post('user/sendotp')
   async sendOtp(@Body() req: CreateUserotpDto): Promise<SuccessResponse | NotFoundException | ConflicException> {
-    const user = await this.userService.getByEmail(req.email)
-    const userFirebase = await this.auth.getUserByEmail(req.email);
-    if (user || userFirebase) {
+    try {
+      await this.auth.getUserByEmail(req.email);
       return new ConflicException("Email đã tồn tại!")
     }
-    const otp = await this.userotpService.sendotp(req.email);
-    const userotp = await this.userotpService.findUserotpByEmail(req.email);
-    if (userotp?.email) {
-      const data = await this.userotpService.update(req.email, otp);
-      if (!data) return new NotFoundException("Không tìm thấy người dùng này!")
-      return new SuccessResponse({
-        message: "Gửi mã OTP thành công!",
-        metadata: { data },
-      })
-    } else {
-      const data = await this.userotpService.create(req.email, otp);
-      return new SuccessResponse({
-        message: "Gửi mã OTP thành công!",
-        metadata: { data },
-      })
+    catch (err) {
+      const user = await this.userService.getByEmail(req.email)
+      if (user) {
+        return new ConflicException("Email đã tồn tại!")
+      }
+      const otp = await this.userotpService.sendotp(req.email);
+      const userotp = await this.userotpService.findUserotpByEmail(req.email);
+      if (userotp?.email) {
+        const data = await this.userotpService.update(req.email, otp);
+        if (!data) return new NotFoundException("Không tìm thấy người dùng này!")
+        return new SuccessResponse({
+          message: "Gửi mã OTP thành công!",
+          metadata: { data },
+        })
+      } else {
+        const data = await this.userotpService.create(req.email, otp);
+        return new SuccessResponse({
+          message: "Gửi mã OTP thành công!",
+          metadata: { data },
+        })
+      }
     }
+
   }
 
   @Public()
@@ -63,9 +69,11 @@ export class UserotpController {
   @Public()
   @Post('user/sendotp-forget')
   async sendOtpForget(@Body() req: CreateUserotpDto): Promise<SuccessResponse | NotFoundException | BadRequestException> {
-    const userFirebase = await this.auth.getUserByEmail(req.email);
-    if (userFirebase) { return new BadRequestException("Tài khoản thuộc quyền quản lý của Google") }
-    else {
+    try {
+      const userFirebase = await this.auth.getUserByEmail(req.email);
+      return new BadRequestException("Tài khoản thuộc quyền quản lý của Google")
+    }
+    catch (err) {
       const user = await this.userService.getByEmail(req.email);
       if (!user) { return new NotFoundException("Không tìm thấy người dùng này!") }
       const otp = await this.userotpService.sendotp(req.email);

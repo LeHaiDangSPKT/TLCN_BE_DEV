@@ -42,6 +42,7 @@ export class BillController {
     @Body() bill: CreateBillDto,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
+    
     const user = await this.userService.getById(userId)
     if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
 
