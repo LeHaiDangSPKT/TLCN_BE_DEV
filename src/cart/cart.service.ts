@@ -87,7 +87,7 @@ export class CartService {
         try {
             cart.listProducts.map(productCart => {
                 if (productCart.productId.toString() === product._id.toString()) {
-                    productCart.quantity += 10
+                    productCart.quantity++
                 }
                 return productCart
             })
