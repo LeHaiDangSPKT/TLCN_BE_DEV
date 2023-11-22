@@ -62,10 +62,10 @@ export class BillController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new ReadBillAbility())
   @CheckRole(RoleName.SELLER)
-  @ApiQuery({ name: 'year', type: Date, required: false, example: "2023-09-25T08:56:53.481+00:00" })
+  @ApiQuery({ name: 'year', type: Number, required: false, example: "2023" })
   @Get('seller/count-total-by-status')
   async countTotalByStatus(
-    @Query('year') year: Date,
+    @Query('year') year: number,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
 

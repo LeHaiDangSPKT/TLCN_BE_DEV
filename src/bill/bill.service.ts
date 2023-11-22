@@ -44,7 +44,7 @@ export class BillService {
         }
     }
 
-    async countTotalByStatus(storeId: string, status: string, year: Date): Promise<number> {
+    async countTotalByStatus(storeId: string, status: string, year: number): Promise<number> {
         try {
             const query: any = { storeId, status }
 
