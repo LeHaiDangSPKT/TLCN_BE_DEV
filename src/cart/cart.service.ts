@@ -101,6 +101,7 @@ export class CartService {
             throw err
         }
     }
+    
 
     async addProductIntoCart(userId: string, store: Store, product: Product): Promise<Cart | boolean> {
         const allCart = await this.getAllByUserId(userId)
@@ -137,7 +138,7 @@ export class CartService {
         const skip = limit * (page - 1)
         try {
             const total = await this.cartModel.countDocuments({ ...search, userId })
-            const carts = await this.cartModel.find({ ...search, userId }).sort({updatedAt: -1}).limit(limit).skip(skip)
+            const carts = await this.cartModel.find({ ...search, userId }).sort({ updatedAt: -1 }).limit(limit).skip(skip)
             return { total, carts }
         }
         catch (err) {
@@ -150,7 +151,7 @@ export class CartService {
     async removeProductInCart(userId: string, productId: string, storeId: string): Promise<Cart> {
         try {
             const allCart = await this.getAllByUserId(userId)
-            const cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
+            const cart: Cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
             cart.listProducts = cart.listProducts.filter(product => product.productId.toString() !== productId)
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
             return await this.cartModel.findByIdAndUpdate(cart._id, cart)

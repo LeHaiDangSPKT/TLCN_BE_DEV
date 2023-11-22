@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { BillService } from './bill.service';
 import { CreateBillDto } from './dto/create-bill.dto';
-import { Bill } from './schema/bill.schema';
+import { BILL_STATUS, Bill } from './schema/bill.schema';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { CheckAbilities, CreateBillAbility, CreateRoleAbility, ReadBillAbility, UpdateBillAbility } from 'src/ability/decorators/abilities.decorator';
@@ -39,32 +39,80 @@ export class BillController {
   @CheckRole(RoleName.USER)
   @Post('user')
   async create(
-    @Body() bill: CreateBillDto,
+    @Body() createBillDto: CreateBillDto,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
-    
+
     const user = await this.userService.getById(userId)
-    if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
 
-    const products = []
-    bill.listProductId.map(async (productId) => {
-      const product = await this.productService.getById(productId)
-      if(!product) return new NotFoundException("Không tìm thấy sản phẩm này!")
-      products.push(product)
-    })
-
-    const store = await this.storeService.getById(products[0]?.storeId)
-
-    const newBill = await this.billService.create(user, store, products, bill)
-
-    await this.userService.updateWallet(userId, newBill.totalPrice, "plus")
-
-    const result = await this.paymentService.processPayment(bill, bill.paymentMethod)
-    if(result === -1) return new NotFoundException("Không tìm thấy phương thức thanh toán này!")
+    const newBills = await Promise.all(createBillDto.data.map(async (billDto) => {
+      await this.userService.updateWallet(userId, billDto.totalPrice, "plus")
+      return this.billService.create(userId, billDto, createBillDto.deliveryMethod, createBillDto.paymentMethod,
+        createBillDto.receiverInfo, createBillDto.giveInfo, createBillDto.deliveryFee)
+    }))
 
     return new SuccessResponse({
       message: "Đặt hàng thành công!",
-      metadata: { data: newBill },
+      metadata: { data: newBills },
+    })
+  }
+
+
+  @UseGuards(AbilitiesGuard)
+  @CheckAbilities(new ReadBillAbility())
+  @CheckRole(RoleName.SELLER)
+  @ApiQuery({ name: 'year', type: Date, required: false, example: "2023-09-25T08:56:53.481+00:00" })
+  @Get('seller/count-total-by-status')
+  async countTotalByStatus(
+    @Query('year') year: Date,
+    @GetCurrentUserId() userId: string,
+  ): Promise<SuccessResponse | NotFoundException> {
+
+    const user = await this.userService.getById(userId)
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
+    const store = await this.storeService.getByUserId(userId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    const statusData: string[] = BILL_STATUS.split("-").map((item: string) => item.toUpperCase())
+
+    const countTotal = await Promise.all(statusData.map(async (status: string) => {
+      return this.billService.countTotalByStatus(store._id, status, year)
+    }))
+
+    const transformedData = Object.fromEntries(
+      countTotal.map((value, index) => [statusData[index], value])
+    )
+
+    return new SuccessResponse({
+      message: "Lấy tổng số lượng các đơn theo trạng thái thành công!",
+      metadata: { data: transformedData },
+    })
+  }
+
+
+  @UseGuards(AbilitiesGuard)
+  @CheckAbilities(new ReadBillAbility())
+  @CheckRole(RoleName.SELLER)
+  @ApiQuery({ name: 'year', type: Number, required: true, example: "2023" })
+  @Get('seller/calculate-revenue-by-month')
+  async calculateRevenueByMonth(
+    @Query('year') year: number,
+    @GetCurrentUserId() userId: string,
+  ): Promise<SuccessResponse | NotFoundException> {
+
+    const user = await this.userService.getById(userId)
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
+    const store = await this.storeService.getByUserId(userId)
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    const data = await this.billService.calculateRevenueByYear(store._id, year)
+
+    return new SuccessResponse({
+      message: "Lấy doanh thu của từng tháng theo năm thành công!",
+      metadata: { data },
     })
   }
 
@@ -108,7 +156,7 @@ export class BillController {
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
-    if(!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const data = await this.billService.getAllByStatus({ storeId: store._id }, page, limit, search, status)
     return new SuccessResponse({
       message: "Lấy danh sách đơn hàng thành công!",
@@ -125,7 +173,7 @@ export class BillController {
     @Param('id') id: string
   ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
-    if(!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
+    if (!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
     return new SuccessResponse({
       message: "Lấy thông tin đơn hàng thành công!",
       metadata: { data: bill },
@@ -142,7 +190,7 @@ export class BillController {
   ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
     const result = await this.billService.update(id, "Đã hủy")
-    if(!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
+    if (!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
     await this.userService.updateWallet(userId, bill.totalPrice, "sub")
     return new SuccessResponse({
       message: "Hủy đơn hàng thành công!",
@@ -162,9 +210,9 @@ export class BillController {
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
     const bill = await this.billService.getDetailById(id)
-    if(!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
+    if (!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
     const result = await this.billService.update(id, status)
-    if(!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
+    if (!result) return new NotFoundException("Không tìm thấy đơn hàng này!")
     if (status === "Đã hủy")
       await this.userService.updateWallet(userId, bill.totalPrice, "sub")
     if (status === "Đã hoàn đơn") {
@@ -192,7 +240,7 @@ export class BillController {
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
-    if(!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const data = await this.billService.getStatistic(store._id, startTime, endTime, type)
     return new SuccessResponse({
       message: "Lấy thống kê thành công!",

@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { ObjectId, Document, Types } from "mongoose";
 import { ProductBillDto } from "../dto/product-bill.dto";
+import { GiveInfo, ProductInfo, ReceiverInfo } from "../dto/create-bill.dto";
+
+
+export const BILL_STATUS = "NEW-CONFIRMED-DELIVERING-DELIVERED-CANCELLED-RETURNED"
+
 
 @Schema({
     timestamps: true,
@@ -10,45 +15,37 @@ export class Bill extends Document {
     userId: string;
 
     @Prop()
-    fullName: string;
-
-    @Prop()
-    email: string;
-
-    @Prop()
-    phone: string;
-
-    @Prop()
-    address: string;
-
-    @Prop()
     storeId: string;
 
-    @Prop()
-    storeName: string;
-
     @Prop({ type: [Object] })
-    listProducts: ProductBillDto[];
+    listProducts: ProductInfo[];
+
+    @Prop()
+    notes: string;
 
     @Prop()
     totalPrice: number;
 
     @Prop()
-    promotionId: string;
-
-    @Prop()
-    promotionName: string;
-
-    @Prop()
-    promotionValue: number;
+    deliveryMethod: string;
 
     @Prop()
     paymentMethod: string;
 
-    @Prop({ default: "Đã đặt" })
+    @Prop({ type: Object })
+    receiverInfo: ReceiverInfo;
+
+    @Prop({ type: Object || null })
+    giveInfo: GiveInfo | null;
+
+    @Prop()
+    deliveryFee: number;
+
+    @Prop({ default: "NEW" })
     status: string;
 
-
+    @Prop()
+    isPaid: boolean;
 }
 
 export const BillSchema = SchemaFactory.createForClass(Bill);
