@@ -25,4 +25,8 @@ export class ProductBillDto {
     @ApiProperty()
     @IsNotEmpty()
     type: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    quantityInStock: number;
 }
