@@ -34,7 +34,7 @@ export class CartService {
             productInfo.avatar = product.avatar
             productInfo.productId = product._id
             productInfo.productName = product.productName
-            productInfo.quantity = product.quantity
+            productInfo.quantity = 1
             productInfo.price = product.price
             productInfo.type = product.type
             cart.listProducts = [productInfo]
@@ -68,7 +68,7 @@ export class CartService {
             productInfo.avatar = product.avatar
             productInfo.productId = product._id
             productInfo.productName = product.productName
-            productInfo.quantity = product.quantity
+            productInfo.quantity = 1
             productInfo.price = product.price
             productInfo.type = product.type
             cart.listProducts.push(productInfo)

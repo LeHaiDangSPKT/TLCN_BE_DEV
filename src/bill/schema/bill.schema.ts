@@ -6,6 +6,10 @@ import { GiveInfo, ProductInfo, ReceiverInfo } from "../dto/create-bill.dto";
 
 export const BILL_STATUS = "NEW-CONFIRMED-DELIVERING-DELIVERED-CANCELLED-RETURNED"
 
+export enum PRODUCT_TYPE {
+    SELL = "SELL",
+    GIVE = "GIVE",
+}
 
 @Schema({
     timestamps: true,

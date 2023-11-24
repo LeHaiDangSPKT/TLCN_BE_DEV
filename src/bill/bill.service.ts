@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Bill } from './schema/bill.schema';
+import { Bill, PRODUCT_TYPE } from './schema/bill.schema';
 import { Model, Error as MongooseError } from 'mongoose';
 import { CartInfo, GiveInfo, ProductInfo, ReceiverInfo } from './dto/create-bill.dto';
 import { ProductBillDto } from './dto/product-bill.dto';
@@ -165,6 +165,118 @@ export class BillService {
     }
 
 
+    async countCharityAllTime(storeId: string): Promise<number> {
+        try {
+            const result = await this.billModel.aggregate([
+                {
+                    $match: {
+                        storeId: storeId.toString(),
+                    },
+                },
+                {
+                    $unwind: '$listProducts',
+                },
+                {
+                    $match: {
+                        'listProducts.type': `${PRODUCT_TYPE.GIVE.toUpperCase()}`,
+                    },
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalCharity: { $sum: '$listProducts.quantity' },
+                    },
+                },
+            ])
+
+            const totalCharity = result[0]?.totalCharity || 0
+
+            return totalCharity
+
+        } catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+
+    async countCharityByYear(storeId: string, year: number): Promise<Record<string, any>> {
+        try {
+            const result = await this.billModel.aggregate([
+                {
+                    $match: {
+                        storeId: storeId.toString(),
+                        $expr: {
+                            $eq: [
+                                { $year: '$createdAt' },
+                                { $year: new Date(year) }
+                            ]
+                        }
+                    },
+                },
+                {
+                    $unwind: '$listProducts',
+                },
+                {
+                    $match: {
+                        'listProducts.type': `${PRODUCT_TYPE.GIVE.toUpperCase()}`,
+                    },
+                },
+                {
+                    $group: {
+                        _id: { $month: '$createdAt' },
+                        totalCharity: { $sum: '$listProducts.quantity' },
+                    },
+                },
+            ])
+
+            // Tạo mảng chứa 12 tháng với tổng số lượng mặc định là 0
+            const monthlyCharity: Record<number, number> = {
+                1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0,
+            }
+
+            // Chỉ chứa những tháng có thông tin
+            // const monthlyCharity: Record<number, number> = {}
+
+            let totalGive = 0
+            let minGive: { month: number; numOfGive: number } | null = null
+            let maxGive: { month: number; numOfGive: number } | null = null
+
+            result.forEach((entry: { _id: number; totalCharity: number }) => {
+                const month = entry._id
+                const numOfGive = entry.totalCharity
+
+                monthlyCharity[month] = numOfGive
+                totalGive += numOfGive
+
+                if (!minGive || numOfGive < minGive.numOfGive) {
+                    minGive = { month, numOfGive }
+                }
+
+                if (!maxGive || numOfGive > maxGive.numOfGive) {
+                    maxGive = { month, numOfGive }
+                }
+            })
+
+            const response = {
+                data: monthlyCharity,
+                charityTotalAllTime: await this.countCharityAllTime(storeId),
+                charityTotalInYear: totalGive,
+                minGive,
+                maxGive,
+            }
+
+            return response
+
+        } catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+
     async getAllByStatus(idCondition: any, pageQuery: number, limitQuery: number, searchQuery: string, statusQuery: string)
         : Promise<{ total: number, bills: Bill[] }> {
         const limit = Number(limitQuery) || Number(process.env.LIMIT_DEFAULT)
@@ -191,7 +303,7 @@ export class BillService {
         }
     }
 
-    async getDetailById(id: string): Promise<Bill> {
+    async getById(id: string): Promise<Bill> {
         try {
             const bill = await this.billModel.findById(id)
             return bill
@@ -206,6 +318,10 @@ export class BillService {
     async update(id: string, status: string): Promise<boolean> {
         try {
             const bill = await this.billModel.findByIdAndUpdate({ _id: id }, { status })
+            if (bill.paymentMethod === 'CASH' && status === 'DELIVERED') {
+                bill.isPaid = true
+                bill.save()
+            }
             return bill ? true : false
         }
         catch (err) {
@@ -215,34 +331,4 @@ export class BillService {
         }
     }
 
-    async getStatistic(storeId: string, startTime: string, endTime: string, type: string): Promise<Bill[]> {
-        if (type === 'doanh thu') return await this.getStatisticTotalPrice(storeId, startTime, endTime)
-        return await this.getStatisticProductType(storeId, startTime, endTime, type)
-    }
-
-
-    async getStatisticProductType(storeId: string, startTime: string, endTime: string, type: string): Promise<Bill[]> {
-        try {
-            const search = { listProducts: { $elemMatch: { type: { $regex: type, $options: "i" } } } }
-            const bills = await this.billModel.find({ storeId, createdAt: { $gte: startTime, $lte: endTime }, ...search, status: 'Đã đặt' })
-            return bills
-        }
-        catch (err) {
-            if (err instanceof MongooseError)
-                throw new InternalServerErrorExceptionCustom()
-            throw err
-        }
-    }
-
-    async getStatisticTotalPrice(storeId: string, startTime: string, endTime: string): Promise<Bill[]> {
-        try {
-            const bills = await this.billModel.find({ storeId, createdAt: { $gte: startTime, $lte: endTime }, status: 'Đã đặt' })
-            return bills
-        }
-        catch (err) {
-            if (err instanceof MongooseError)
-                throw new InternalServerErrorExceptionCustom()
-            throw err
-        }
-    }
 }

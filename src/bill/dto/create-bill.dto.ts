@@ -14,6 +14,10 @@ export class ProductInfo {
     @IsNotEmpty()
     quantity: number;
 
+    @ApiProperty()
+    @IsNotEmpty()
+    type: string;
+
 }
 
 export class CartInfo {
