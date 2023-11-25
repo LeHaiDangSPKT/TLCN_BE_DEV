@@ -16,6 +16,7 @@ import { RoleName } from 'src/role/schema/role.schema';
 import { StoreService } from 'src/store/store.service';
 import { NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
+import { BillDto } from './dto/bill.dto';
 
 @Controller('bill')
 @ApiTags('Bill')
@@ -148,21 +149,67 @@ export class BillController {
   @Get('user')
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiQuery({ name: 'search', type: String, required: false })
-  @ApiQuery({ name: 'status', type: String, required: true })
+  @ApiQuery({ name: 'status', type: String, required: true, example: "NEW" })
   async getAllByStatusUser(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Query('search') search: string,
     @Query('status') status: string,
     @GetCurrentUserId() userId: string,
-  ): Promise<SuccessResponse> {
+  ): Promise<SuccessResponse | NotFoundException> {
 
-    const data = await this.billService.getAllByStatus({ userId: userId }, page, limit, search, status)
+    const user = await this.userService.getById(userId)
+
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
+    const data: any = await this.billService.getAllByStatus({ userId }, page, limit, status)
+
+    const fullData: BillDto[] = await Promise.all(data.bills.map(async (bill: any) => {
+
+      let listProductsFullInfo = await Promise.all(bill.listProducts.map(async (product: any) => {
+
+        let productFullInfo = await this.productService.getById(product.productId)
+
+        let productData = {
+          product: productFullInfo,
+          subInfo: product,
+        }
+
+        delete productData.subInfo.productId
+        delete productData.subInfo.type
+
+        return productData
+      }))
+
+      let storeInfo = await this.storeService.getById(bill.storeId)
+
+      let userInfo = await this.userService.getById(bill.userId)
+
+      userInfo = userInfo.toObject()
+
+      delete userInfo.password
+
+      return {
+        _id: bill._id,
+        storeInfo,
+        listProductsFullInfo,
+        userInfo,
+        notes: bill.notes,
+        totalPrice: bill.totalPrice,
+        deliveryMethod: bill.deliveryMethod,
+        paymentMethod: bill.paymentMethod,
+        receiverInfo: bill.receiverInfo,
+        giveInfo: bill.giveInfo,
+        deliveryFee: bill.deliveryFee,
+        status: bill.status,
+        isPaid: bill.isPaid,
+        createdAt: bill.createdAt,
+      }
+
+    }))
 
     return new SuccessResponse({
-      message: "Lấy danh sách đơn hàng thành công!",
-      metadata: { data: data },
+      message: `Lấy danh sách đơn hàng ${RoleName.USER} thành công!`,
+      metadata: { data: { total: data.total, fullData } },
     })
 
   }
@@ -174,12 +221,10 @@ export class BillController {
   @Get('seller')
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiQuery({ name: 'search', type: String, required: false })
-  @ApiQuery({ name: 'status', type: String, required: true })
+  @ApiQuery({ name: 'status', type: String, required: true, example: "NEW" })
   async getAllByStatusSeller(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Query('search') search: string,
     @Query('status') status: string,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
@@ -188,11 +233,55 @@ export class BillController {
 
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
 
-    const data = await this.billService.getAllByStatus({ storeId: store._id }, page, limit, search, status)
+    const data: any = await this.billService.getAllByStatus({ storeId: store._id }, page, limit, status)
+
+    const fullData: BillDto[] = await Promise.all(data.bills.map(async (bill: any) => {
+
+      let listProductsFullInfo = await Promise.all(bill.listProducts.map(async (product: any) => {
+
+        let productFullInfo = await this.productService.getById(product.productId)
+
+        let productData = {
+          product: productFullInfo,
+          subInfo: product,
+        }
+
+        delete productData.subInfo.productId
+        delete productData.subInfo.type
+
+        return productData
+      }))
+
+      let storeInfo = await this.storeService.getById(bill.storeId)
+
+      let userInfo = await this.userService.getById(bill.userId)
+
+      userInfo = userInfo.toObject()
+
+      delete userInfo.password
+
+      return {
+        _id: bill._id,
+        storeInfo,
+        listProductsFullInfo,
+        userInfo,
+        notes: bill.notes,
+        totalPrice: bill.totalPrice,
+        deliveryMethod: bill.deliveryMethod,
+        paymentMethod: bill.paymentMethod,
+        receiverInfo: bill.receiverInfo,
+        giveInfo: bill.giveInfo,
+        deliveryFee: bill.deliveryFee,
+        status: bill.status,
+        isPaid: bill.isPaid,
+        createdAt: bill.createdAt,
+      }
+
+    }))
 
     return new SuccessResponse({
-      message: "Lấy danh sách đơn hàng thành công!",
-      metadata: { data: data },
+      message: `Lấy danh sách đơn hàng ${RoleName.SELLER} thành công!`,
+      metadata: { data: { total: data.total, fullData } },
     })
 
   }
@@ -203,14 +292,63 @@ export class BillController {
   @CheckRole(RoleName.USER)
   @Get('user/:id')
   async getById(
-    @Param('id') id: string
+    @Param('id') id: string,
+    @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
-    const bill = await this.billService.getById(id)
+
+    const bill: any = await this.billService.getById(id)
+
     if (!bill) return new NotFoundException("Không tìm thấy đơn hàng này!")
+
+    const store = await this.storeService.getByUserId(userId)
+
+    if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    let listProductsFullInfo = await Promise.all(bill.listProducts.map(async (product: any) => {
+
+      let productFullInfo = await this.productService.getById(product.productId)
+
+      let productData = {
+        product: productFullInfo,
+        subInfo: product,
+      }
+
+      delete productData.subInfo.productId
+      delete productData.subInfo.type
+
+      return productData
+    }))
+
+    let storeInfo = await this.storeService.getById(bill.storeId)
+
+    let userInfo = await this.userService.getById(bill.userId)
+
+    userInfo = userInfo.toObject()
+
+    delete userInfo.password
+
+    const fullData: any = {
+      _id: bill._id,
+      storeInfo,
+      listProductsFullInfo,
+      userInfo,
+      notes: bill.notes,
+      totalPrice: bill.totalPrice,
+      deliveryMethod: bill.deliveryMethod,
+      paymentMethod: bill.paymentMethod,
+      receiverInfo: bill.receiverInfo,
+      giveInfo: bill.giveInfo,
+      deliveryFee: bill.deliveryFee,
+      status: bill.status,
+      isPaid: bill.isPaid,
+      createdAt: bill.createdAt,
+    }
+
     return new SuccessResponse({
-      message: "Lấy thông tin đơn hàng thành công!",
-      metadata: { data: bill },
+      message: `Lấy đơn hàng thành công!`,
+      metadata: { data: fullData },
     })
+
   }
 
   @UseGuards(AbilitiesGuard)

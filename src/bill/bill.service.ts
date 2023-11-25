@@ -277,23 +277,18 @@ export class BillService {
     }
 
 
-    async getAllByStatus(idCondition: any, pageQuery: number, limitQuery: number, searchQuery: string, statusQuery: string)
+    async getAllByStatus(idCondition: any, pageQuery: number, limitQuery: number, statusQuery: string)
         : Promise<{ total: number, bills: Bill[] }> {
+
         const limit = Number(limitQuery) || Number(process.env.LIMIT_DEFAULT)
+
         const page = Number(pageQuery) || Number(process.env.PAGE_DEFAULT)
-        const search = searchQuery
-            ? {
-                $or: [
-                    { storeName: { $regex: searchQuery, $options: "i" } },
-                    { listProducts: { $elemMatch: { productName: { $regex: searchQuery, $options: "i" } } } }
-                ]
-            }
-            : {}
-        const statusRegex = { status: { $regex: statusQuery, $options: "i" } }
+
         const skip = limit * (page - 1)
+
         try {
-            const total = await this.billModel.countDocuments({ ...idCondition, ...statusRegex, ...search })
-            const bills = await this.billModel.find({ ...idCondition, ...statusRegex, ...search }).limit(limit).skip(skip)
+            const total = await this.billModel.countDocuments({ ...idCondition, status: statusQuery.toUpperCase() })
+            const bills = await this.billModel.find({ ...idCondition, status: statusQuery.toUpperCase() }).limit(limit).skip(skip)
             return { total, bills }
         }
         catch (err) {
