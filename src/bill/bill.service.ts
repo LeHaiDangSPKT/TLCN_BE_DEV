@@ -120,30 +120,31 @@ export class BillService {
             ])
 
             // Tạo mảng chứa 12 tháng với doanh thu mặc định là 0
-            const monthlyRevenue: Record<number, number> = {
-                1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0,
+            const monthlyRevenue: Record<string, number> = {
+                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0, 
+                'Tháng 7': 0, 'Tháng 8': 0, 'Tháng 9': 0, 'Tháng 10': 0, 'Tháng 11': 0, 'Tháng 12': 0,
             }
 
             // Chỉ chứa những tháng có thông tin
             // const monthlyRevenue: Record<number, number> = {}
 
             let totalRevenue = 0
-            let minRevenue: { month: number; revenue: number } | null = null
-            let maxRevenue: { month: number; revenue: number } | null = null
+            let minRevenue: { month: string; revenue: number } | null = null
+            let maxRevenue: { month: string; revenue: number } | null = null
 
             result.forEach((entry: { _id: number; totalRevenue: number }) => {
                 const month = entry._id
                 const revenue = entry.totalRevenue
 
-                monthlyRevenue[month] = revenue
+                monthlyRevenue[`Tháng ${month}`] = revenue
                 totalRevenue += revenue
 
                 if (!minRevenue || revenue < minRevenue.revenue) {
-                    minRevenue = { month, revenue }
+                    minRevenue = { month: `Tháng ${month}`, revenue }
                 }
 
                 if (!maxRevenue || revenue > maxRevenue.revenue) {
-                    maxRevenue = { month, revenue }
+                    maxRevenue = { month: `Tháng ${month}`, revenue }
                 }
             })
 
@@ -232,30 +233,31 @@ export class BillService {
             ])
 
             // Tạo mảng chứa 12 tháng với tổng số lượng mặc định là 0
-            const monthlyCharity: Record<number, number> = {
-                1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0,
+            const monthlyCharity: Record<string, number> = {
+                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0, 
+                'Tháng 7': 0, 'Tháng 8': 0, 'Tháng 9': 0, 'Tháng 10': 0, 'Tháng 11': 0, 'Tháng 12': 0,
             }
 
             // Chỉ chứa những tháng có thông tin
             // const monthlyCharity: Record<number, number> = {}
 
             let totalGive = 0
-            let minGive: { month: number; numOfGive: number } | null = null
-            let maxGive: { month: number; numOfGive: number } | null = null
+            let minGive: { month: string; numOfGive: number } | null = null
+            let maxGive: { month: string; numOfGive: number } | null = null
 
             result.forEach((entry: { _id: number; totalCharity: number }) => {
                 const month = entry._id
                 const numOfGive = entry.totalCharity
 
-                monthlyCharity[month] = numOfGive
+                monthlyCharity[`Tháng ${month}`] = numOfGive
                 totalGive += numOfGive
 
                 if (!minGive || numOfGive < minGive.numOfGive) {
-                    minGive = { month, numOfGive }
+                    minGive = { month: `Tháng ${month}`, numOfGive }
                 }
 
                 if (!maxGive || numOfGive > maxGive.numOfGive) {
-                    maxGive = { month, numOfGive }
+                    maxGive = { month: `Tháng ${month}`, numOfGive }
                 }
             })
 
