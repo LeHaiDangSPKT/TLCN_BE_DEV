@@ -26,7 +26,7 @@ export class UserController {
   @Get('user/:id')
   async findOne(@Param('id') id: string): Promise<SuccessResponse | NotFoundException> {
     const user = await this.userService.getById(id);
-    if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
     return new SuccessResponse({
       message: "Lấy thông tin người dùng thành công!",
       metadata: { data: user },
@@ -37,14 +37,21 @@ export class UserController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new UpdateUserAbility())
   @CheckRole(RoleName.USER, RoleName.ADMIN)
-  @Put('user/:id')
-  async update(@Param('id') id: string, @Body() UpdateUserDto: UpdateUserDto): Promise<SuccessResponse | NotFoundException> {
-    const user = await this.userService.update(id, UpdateUserDto);
-    if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
+  @Patch('user/:id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto)
+    : Promise<SuccessResponse | NotFoundException> {
+
+    const user = await this.userService.update(id, updateUserDto);
+
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+
     return new SuccessResponse({
       message: "Cập nhật thông tin người dùng thành công!",
       metadata: { data: user },
     })
+
   }
 
   // Delete user
@@ -54,7 +61,7 @@ export class UserController {
   @Delete('user/:id')
   async delete(@Param('id') id: string): Promise<SuccessResponse | NotFoundException> {
     const user = await this.userService.delete(id);
-    if(!user) return new NotFoundException("Không tìm thấy người dùng này!")
+    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
     return new SuccessResponse({
       message: "Xóa người dùng thành công!",
       metadata: { data: user },
@@ -69,7 +76,7 @@ export class UserController {
   async addFriend(@Param('id') id: string, @Body() req: AddIdDto): Promise<SuccessResponse | BadRequestException> {
     const me = await this.userService.addFriend(id, req.id);
     const myfriend = await this.userService.addFriend(req.id, id);
-    if(!me || !myfriend) return new BadRequestException("Không thể kết bạn!")
+    if (!me || !myfriend) return new BadRequestException("Không thể kết bạn!")
     return new SuccessResponse({
       message: "Kết bạn thành công!",
       metadata: { data: me },
@@ -84,7 +91,7 @@ export class UserController {
   async unFriend(@Param('id') id: string, @Body() req: AddIdDto): Promise<SuccessResponse | BadRequestException> {
     const me = await this.userService.unFriend(id, req.id);
     const myfriend = await this.userService.unFriend(req.id, id);
-    if(!me || !myfriend) return new BadRequestException("Không thể hủy kết bạn!")
+    if (!me || !myfriend) return new BadRequestException("Không thể hủy kết bạn!")
     return new SuccessResponse({
       message: "Hủy kết bạn thành công!",
       metadata: { data: me },
@@ -98,7 +105,7 @@ export class UserController {
   @Post('user/followStore/:id')
   async addStore(@Param('id') id: string, @Body() req: AddIdDto): Promise<SuccessResponse | BadRequestException> {
     const user = await this.userService.followStore(id, req.id);
-    if(!user) return new BadRequestException("Không thể theo dõi cửa hàng!")
+    if (!user) return new BadRequestException("Không thể theo dõi cửa hàng!")
     return new SuccessResponse({
       message: "Theo dõi cửa hàng thành công!",
       metadata: { data: user },
@@ -112,7 +119,7 @@ export class UserController {
   @Post('user/unFollowStore/:id')
   async unFollowStore(@Param('id') id: string, @Body() req: AddIdDto): Promise<SuccessResponse | BadRequestException> {
     const user = await this.userService.unFollowStore(id, req.id);
-    if(!user) return new BadRequestException("Không thể bỏ theo dõi cửa hàng!")
+    if (!user) return new BadRequestException("Không thể bỏ theo dõi cửa hàng!")
     return new SuccessResponse({
       message: "Bỏ theo dõi cửa hàng thành công!",
       metadata: { data: user },
@@ -126,7 +133,7 @@ export class UserController {
   @Put('manager/warningcount/:id')
   async updateWarningCount(@Param('id') id: string, @Param("action") action: string): Promise<SuccessResponse | BadRequestException> {
     const user = await this.userService.updateWarningCount(id, action);
-    if(!user) return new BadRequestException("Không thể cập nhật số lần vi phạm!")
+    if (!user) return new BadRequestException("Không thể cập nhật số lần vi phạm!")
     return new SuccessResponse({
       message: "Cập nhật số lần vi phạm thành công!",
       metadata: { data: user },

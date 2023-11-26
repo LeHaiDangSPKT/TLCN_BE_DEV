@@ -1,37 +1,38 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
+import { AddressProfileDto } from './address-profile.dto';
 
 export class UpdateUserDto {
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     avatar: string;
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     fullName: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    address: string;
+    @ApiProperty({ type: [AddressProfileDto] })
+    @IsOptional()
+    address: AddressProfileDto[];
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     phone: string;
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     gender: string;
 
     @ApiProperty({ type: Date })
-    @IsNotEmpty()
+    @IsOptional()
     birthday: Date;
 
-    @IsNotEmpty()
+    @ApiProperty()
+    @IsOptional()
     wallet: number;
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     status: boolean;
 
 }

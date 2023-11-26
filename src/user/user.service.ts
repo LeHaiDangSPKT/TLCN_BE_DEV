@@ -58,8 +58,11 @@ export class UserService {
 
   async update(userId: string, req: any): Promise<User> {
     try {
-      const user = await this.userModel.findByIdAndUpdate(userId, req)
+
+      const user = await this.userModel.findByIdAndUpdate(userId, req, { new: true })
+
       return user
+
     } catch (err) {
       if (err instanceof MongooseError)
         throw new InternalServerErrorExceptionCustom()
