@@ -9,8 +9,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AddIdDto } from './dto/add-friend-store.dto';
 import { CheckRole } from 'src/ability/decorators/role.decorator';
 import { RoleName } from 'src/role/schema/role.schema';
-import { BadRequestException, NotFoundException } from 'src/core/error.response';
+import { BadRequestException, ForbiddenException, NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
+import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
 
 @Controller('user')
 @ApiTags('User')
@@ -40,16 +41,21 @@ export class UserController {
   @Patch('user/:id')
   async update(
     @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto)
+    @Body() updateUserDto: UpdateUserDto,
+    @GetCurrentUserId() userId: string)
     : Promise<SuccessResponse | NotFoundException> {
 
-    const user = await this.userService.update(id, updateUserDto);
+    const currentUserRole = await this.roleService.getRoleNameByUserId(userId)
 
-    if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
+    if (currentUserRole.includes(RoleName.USER) && id !== userId) {
+      return new ForbiddenException("Bạn không có quyền cập nhật thông tin người dùng khác!")
+    }
+
+    const updatedUser = await this.userService.update(id, updateUserDto)
 
     return new SuccessResponse({
       message: "Cập nhật thông tin người dùng thành công!",
-      metadata: { data: user },
+      metadata: { data: updatedUser },
     })
 
   }
