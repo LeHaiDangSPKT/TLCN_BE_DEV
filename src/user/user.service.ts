@@ -34,7 +34,11 @@ export class UserService {
   async getByEmail(email: string): Promise<User> {
     try {
       const user = await this.userModel.findOne({ email })
+
+      user.address.sort((a, b) => (b.default ? 1 : -1) - (a.default ? 1 : -1))
+      
       return user
+
     }
     catch (err) {
       if (err instanceof MongooseError)
@@ -46,7 +50,11 @@ export class UserService {
   async getById(userId: string): Promise<User> {
     try {
       const user = await this.userModel.findById(userId)
+
+      user.address.sort((a, b) => (b.default ? 1 : -1) - (a.default ? 1 : -1))
+
       return user
+
     }
     catch (err) {
       if (err instanceof MongooseError)
@@ -193,7 +201,14 @@ export class UserService {
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
+
+      users.map(user => {
+        user.address.sort((a, b) => (b.default ? 1 : -1) - (a.default ? 1 : -1))
+        return user
+      })
+
       return { total, users }
+
     } catch (err) {
       if (err instanceof MongooseError)
         throw new InternalServerErrorExceptionCustom()

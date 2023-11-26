@@ -14,5 +14,7 @@ export class AddressProfileDto {
     @IsNotEmpty()
     address: string;
 
-    default: boolean = true;
+    @ApiProperty()
+    @IsNotEmpty()
+    default: boolean = false;
 }

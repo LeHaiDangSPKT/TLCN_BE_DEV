@@ -19,7 +19,7 @@ export class User extends Document {
     password: string;
 
     @Prop({ type: [Object] })
-    deliveryAddress: AddressProfileDto[];
+    address: AddressProfileDto[];
 
     @Prop({ type: String })
     phone: string;
