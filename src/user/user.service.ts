@@ -187,6 +187,7 @@ export class UserService {
       // Total user and search user by email or name
       const total = await this.userModel.countDocuments({ $or: [{ email: { $regex: search, $options: 'i' } }, { name: { $regex: search, $options: 'i' } }] })
       const users = await this.userModel.find({ $or: [{ email: { $regex: search, $options: 'i' } }, { name: { $regex: search, $options: 'i' } }] })
+        .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
       return { total, users }

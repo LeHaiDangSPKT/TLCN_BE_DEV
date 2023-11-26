@@ -32,7 +32,10 @@ export class NotificationService {
         const skip = limit * (page - 1)
         try {
             const total = await this.notificationModel.countDocuments({ userIdTo: userId })
-            const notifications = await this.notificationModel.find({ userIdTo: userId }).sort({ updatedAt: -1 }).limit(limit).skip(skip)
+            const notifications = await this.notificationModel.find({ userIdTo: userId })
+                .sort({ updatedAt: -1 })
+                .limit(limit)
+                .skip(skip)
             return { total, notifications }
         }
         catch (err) {

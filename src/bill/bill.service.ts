@@ -288,7 +288,10 @@ export class BillService {
 
         try {
             const total = await this.billModel.countDocuments({ ...idCondition, status: statusQuery.toUpperCase() })
-            const bills = await this.billModel.find({ ...idCondition, status: statusQuery.toUpperCase() }).limit(limit).skip(skip)
+            const bills = await this.billModel.find({ ...idCondition, status: statusQuery.toUpperCase() })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .skip(skip)
             return { total, bills }
         }
         catch (err) {

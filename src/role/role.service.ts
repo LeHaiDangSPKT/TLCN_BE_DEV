@@ -74,7 +74,7 @@ export class RoleService {
 
     async removeUserRole(userId: string, name: string): Promise<boolean> {
         try {
-            // check user is in listUser of any role, listUde is array of userId
+            // check user is in listUser of any role, listUser is array of userId
             const role = await this.roleModel.findOne({ name, listUser: userId })
             if (!role) { return false }
             // remove user from listUser of role

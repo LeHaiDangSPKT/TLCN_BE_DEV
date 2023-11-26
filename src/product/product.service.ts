@@ -56,7 +56,10 @@ export class ProductService {
         const skip = limit * (page - 1)
         try {
             const total = await this.productModel.countDocuments({ ...search, ...storeId })
-            const products = await this.productModel.find({ ...search, ...storeId }).limit(limit).skip(skip)
+            const products = await this.productModel.find({ ...search, ...storeId })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .skip(skip)
             return { total, products }
         }
         catch (err) {
