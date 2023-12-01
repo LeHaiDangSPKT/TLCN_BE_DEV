@@ -13,6 +13,9 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
+import { UserService } from 'src/user/user.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification } from 'src/notification/schema/notification.schema';
 
 
 @Controller('product')
@@ -23,6 +26,8 @@ export class ProductController {
     private readonly productService: ProductService,
     private readonly storeService: StoreService,
     private readonly evaluationService: EvaluationService,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -33,14 +38,42 @@ export class ProductController {
     @Body() product: CreateProductDto,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
+
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
     const newProduct = await this.productService.create(store, product)
+
     await this.evaluationService.create(newProduct._id)
+
+    const userHasFollowStores = await this.userService.getFollowStoresByStoreId(store._id)
+
+    const notificationPromises: Promise<Notification>[] = [];
+
+    for (const user of userHasFollowStores) {
+      if (userId === user._id) continue
+  
+      const notificationPromise = this.notificationService.create({
+        userIdFrom: userId,
+        userIdTo: user._id,
+        content: `đã đăng sản phẩm mới. ${newProduct.productName}`,
+        type: "Thêm sản phẩm",
+        sub: {
+          fullName: store.name,
+          avatar: store.avatar,
+          productId: newProduct._id.toString(),
+        },
+      })
+  
+      notificationPromises.push(notificationPromise)
+    }
+    await Promise.all(notificationPromises)
+
     return new SuccessResponse({
       message: "Tạo sản phẩm thành công!",
       metadata: { data: newProduct },
     })
+
   }
 
   // để tạo nhiều data một lúc (để test)
@@ -73,7 +106,7 @@ export class ProductController {
     @Query('limit') limit: number,
     @Query('search') search: string,
     @GetCurrentUserId() userId: string,
-  ) : Promise<SuccessResponse | NotFoundException> {
+  ): Promise<SuccessResponse | NotFoundException> {
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
     const products = await this.productService.getAllBySearch(store._id, page, limit, search)
@@ -93,7 +126,7 @@ export class ProductController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-  ) : Promise<SuccessResponse> {
+  ): Promise<SuccessResponse> {
     const products = await this.productService.getAllBySearch(null, page, limit, search)
     return new SuccessResponse({
       message: "Lấy danh sách sản phẩm thành công!",

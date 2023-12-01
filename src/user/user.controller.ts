@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CheckAbilities, DeleteUserAbility, ReadUserAbility, UpdateUserAbility } from 'src/ability/decorators/abilities.decorator';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
 import { User } from './schema/user.schema';
@@ -12,6 +12,7 @@ import { RoleName } from 'src/role/schema/role.schema';
 import { BadRequestException, ForbiddenException, NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
 import { GetCurrentUserId } from 'src/auth/decorators/get-current-userid.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('user')
 @ApiTags('User')
@@ -162,4 +163,5 @@ export class UserController {
       metadata: { data },
     })
   }
+
 }

@@ -20,6 +20,7 @@ import { ErrorResponseDto } from 'src/responses/error.responseDto';
 import { OK, SuccessResponse } from 'src/core/success.response';
 import { BadRequestException, ForbiddenException } from 'src/core/error.response';
 import { SuccessResponseDto } from 'src/responses/success.responseDto';
+import { GetCurrentUserId } from './decorators/get-current-userid.decorator';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -96,9 +97,8 @@ export class AuthController {
   @CheckAbilities(new ManageUserTokenAbility())
   @Delete('logout')
   async logout(
-    @Req() req: Request
+    @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | ForbiddenException> {
-    const userId = req.user['userId']
     const result = await this.userTokenService.deleteUserToken(userId)
     if(!result) return new ForbiddenException("Không thể đăng xuất!")
     return new SuccessResponse({
@@ -112,9 +112,9 @@ export class AuthController {
   @CheckAbilities(new ManageUserTokenAbility())
   @Post('refresh')
   async refreshToken(
+    @GetCurrentUserId() userId: string,
     @Req() req: Request
   ): Promise<SuccessResponse | ForbiddenException> {
-    const userId = req.user['userId']
     const refreshToken = req.user['refreshToken']
     const userToken = await this.userTokenService.getUserTokenById(userId)
     await this.authService.compareData(refreshToken, userToken.hashedRefreshToken)

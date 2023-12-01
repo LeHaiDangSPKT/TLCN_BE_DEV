@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { EmojiDto } from "../dto/emoji.dto";
+import { EmojiDto, HadEvaluation } from "../dto/evaluation.dto";
 
 @Schema({
     timestamps: true,
@@ -10,7 +10,10 @@ export class Evaluation extends Document {
     productId: string;
 
     @Prop({ type: [Object], default: [] })
-    Emojis: EmojiDto[];
+    emojis: EmojiDto[];
+
+    @Prop({ type: [Object], default: [] })
+    hadEvaluation: HadEvaluation[];
 }
 
 export const EvaluationSchema = SchemaFactory.createForClass(Evaluation);

@@ -36,7 +36,7 @@ export class UserService {
       const user = await this.userModel.findOne({ email })
 
       user.address.sort((a, b) => (b.default ? 1 : -1) - (a.default ? 1 : -1))
-      
+
       return user
 
     }
@@ -220,6 +220,16 @@ export class UserService {
     try {
       // Update password by email
       return await this.userModel.findOneAndUpdate({ email }, { password })
+    } catch (err) {
+      if (err instanceof MongooseError)
+        throw new InternalServerErrorExceptionCustom()
+      throw err
+    }
+  }
+
+  async getFollowStoresByStoreId(storeId: string): Promise<User[]> {
+    try {
+      return await this.userModel.find({ followStores: storeId })
     } catch (err) {
       if (err instanceof MongooseError)
         throw new InternalServerErrorExceptionCustom()

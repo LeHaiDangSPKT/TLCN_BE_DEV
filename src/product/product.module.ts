@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -8,6 +8,7 @@ import { ProductSchema } from './schema/product.schema';
 import { StoreModule } from 'src/store/store.module';
 import { EvaluationModule } from 'src/evaluation/evaluation.module';
 import { UserModule } from 'src/user/user.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -15,7 +16,9 @@ import { UserModule } from 'src/user/user.module';
     AbilityModule,
     RoleModule,
     StoreModule,
-    EvaluationModule,
+    forwardRef(() => EvaluationModule),
+    UserModule,
+    NotificationModule,
   ],
   controllers: [ProductController],
   providers: [ProductService],
