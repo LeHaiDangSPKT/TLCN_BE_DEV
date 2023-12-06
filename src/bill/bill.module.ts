@@ -11,6 +11,7 @@ import { StoreModule } from 'src/store/store.module';
 import { ProductModule } from 'src/product/product.module';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { FirebaseModule } from 'src/firebase/firebase.module';
+import { CartModule } from 'src/cart/cart.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
     UserModule,
     ProductModule,
     StoreModule,
+    CartModule,
   ],
   controllers: [BillController],
   providers: [BillService],

@@ -17,6 +17,7 @@ import { StoreService } from 'src/store/store.service';
 import { NotFoundException } from 'src/core/error.response';
 import { SuccessResponse } from 'src/core/success.response';
 import { BillDto } from './dto/bill.dto';
+import { CartService } from 'src/cart/cart.service';
 
 @Controller('bill')
 @ApiTags('Bill')
@@ -28,6 +29,7 @@ export class BillController {
     private readonly userService: UserService,
     private readonly productService: ProductService,
     private readonly storeService: StoreService,
+    private readonly cartService: CartService,
   ) {
     this.paymentService.registerPaymentGateway(PAYMENT_METHOD.VNPAY, new VNPayGateway())
     this.paymentService.registerPaymentGateway(PAYMENT_METHOD.MOMO, new MoMoGateway())
@@ -48,9 +50,21 @@ export class BillController {
     if (!user) return new NotFoundException("Không tìm thấy người dùng này!")
 
     const newBills = await Promise.all(createBillDto.data.map(async (billDto) => {
+
       await this.userService.updateWallet(userId, billDto.totalPrice, "plus")
-      return this.billService.create(userId, billDto, createBillDto.deliveryMethod, createBillDto.paymentMethod,
+
+      billDto.listProducts.forEach(async (product: any) => {
+        await this.cartService.removeProductInCart(userId, product.productId, billDto.storeId)
+
+        await this.productService.updateQuantity(product.productId, product.quantity)
+
+      })
+
+      let newBill = await this.billService.create(userId, billDto, createBillDto.deliveryMethod, createBillDto.paymentMethod,
         createBillDto.receiverInfo, createBillDto.giveInfo, createBillDto.deliveryFee)
+
+      return newBill
+
     }))
 
     return new SuccessResponse({

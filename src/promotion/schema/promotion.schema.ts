@@ -5,12 +5,6 @@ import mongoose, { ObjectId, Document, Types } from "mongoose";
     timestamps: true,
 })
 export class Promotion extends Document {
-    //     - Ảnh
-    // - Tên khuyến mãi
-    // - Nội dung
-    // - Giá trị khuyến mãi
-    // - Số ngày tồn tại
-    // - danh sách loại sản phẩm
     @Prop()
     photo: string[];
 

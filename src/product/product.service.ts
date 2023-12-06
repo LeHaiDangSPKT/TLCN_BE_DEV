@@ -95,7 +95,7 @@ export class ProductService {
         }
     }
 
-    async getlistProductLasted(limit: number): Promise<Product[]> {
+    async getListProductLasted(limit: number): Promise<Product[]> {
         try {
             const products = await this.productModel.find({}).sort({ createdAt: -1 }).limit(limit)
             return products
@@ -109,6 +109,7 @@ export class ProductService {
 
     async mostProductsInStore(limit: number): Promise<Product[]> {
         try {
+            const limitQuery = Number(limit) || Number(process.env.LIMIT_DEFAULT)
             const products = await this.productModel.aggregate([
                 {
                     $group: {
@@ -120,18 +121,35 @@ export class ProductService {
                     $sort: { count: -1 }
                 },
                 {
-                    $limit: Number(limit)
+                    $limit: limitQuery
                 }
             ])
             const storeIds = products.map(product => product._id)
             var arr = []
             for (let i = 0; i < storeIds.length; i++) {
-                const product = await this.productModel.find({ storeId: storeIds[i] }, { _id: 1, avatar: 1, quantity: 1, productName: 1, price: 1, storeId: 1, type: 1 }).limit(10)
+                const product = await this.productModel.find({ storeId: storeIds[i] }).limit(10)
                 arr.push(product)
             }
             return arr
         }
         catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+    async updateQuantity(id: string, quantitySold: number): Promise<void> {
+        try{
+            const product: Product = await this.getById(id)
+            product.quantity -= quantitySold
+            if (product.quantity === 0) {
+                await this.productModel.findByIdAndDelete(product._id)
+                return
+            }
+            await product.save()
+        }
+        catch(err){
             if (err instanceof MongooseError)
                 throw new InternalServerErrorExceptionCustom()
             throw err

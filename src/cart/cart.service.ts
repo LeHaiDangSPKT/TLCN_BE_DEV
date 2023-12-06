@@ -155,11 +155,12 @@ export class CartService {
             const allCart = await this.getAllByUserId(userId)
             const cart: Cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
             cart.listProducts = cart.listProducts.filter(product => product.productId.toString() !== productId)
-            if (cart.listProducts.length === 0) {
-                return await this.cartModel.findByIdAndDelete(cart._id)
-            }
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
-            return await this.cartModel.findByIdAndUpdate(cart._id, cart)
+            if (cart.listProducts.length === 0) {
+                await this.cartModel.findByIdAndDelete(cart._id)
+                return null
+            }
+            return await this.cartModel.findByIdAndUpdate(cart._id, cart, { new: true })
         }
         catch (err) {
             if (err instanceof MongooseError)
@@ -167,4 +168,5 @@ export class CartService {
             throw err
         }
     }
+
 }

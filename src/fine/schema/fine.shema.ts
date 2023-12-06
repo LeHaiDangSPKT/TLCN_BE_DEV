@@ -6,9 +6,6 @@ import mongoose, { ObjectId, Document, Types } from "mongoose";
     timestamps: true,
 })
 export class Fine extends Document {
-    //     - Số lần
-    // - Hình thức phạt
-
     @Prop()
     @IsNotEmpty()
     times: number

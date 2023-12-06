@@ -13,7 +13,7 @@ export class BillService {
         private readonly billModel: Model<Bill>
     ) { }
 
-    getTotalPrice(listProducts: ProductBillDto[], promotionValue: number): number {
+    getTotalPriceWithPromotion(listProducts: ProductBillDto[], promotionValue: number): number {
         const productPrice = listProducts.reduce((total: number, product: ProductBillDto) => {
             const productTotal = product.quantity * product.price;
             return total + productTotal;
@@ -33,7 +33,6 @@ export class BillService {
             if (giveInfo) billData.giveInfo = giveInfo
             billData.deliveryFee = deliveryFee
             paymentMethod === 'CASH' ? billData.isPaid = false : billData.isPaid = true
-
             billData.save()
             return billData
         }

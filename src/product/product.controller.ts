@@ -16,6 +16,9 @@ import { SuccessResponse } from 'src/core/success.response';
 import { UserService } from 'src/user/user.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/schema/notification.schema';
+import { ProductDto } from './dto/product.dto';
+import { Product } from './schema/product.schema';
+import { clearGlobalAppDefaultCred } from 'firebase-admin/lib/app/credential-factory';
 
 
 @Controller('product')
@@ -158,7 +161,7 @@ export class ProductController {
   async getlistProductLasted(
     @Query('limit') limit: number,
   ): Promise<SuccessResponse> {
-    const products = await this.productService.getlistProductLasted(limit)
+    const products = await this.productService.getListProductLasted(limit)
     return new SuccessResponse({
       message: "Lấy danh sách sản phẩm thành công!",
       metadata: { data: products },
@@ -171,11 +174,14 @@ export class ProductController {
   async mostProductsInStore(
     @Query('limit') limit: number,
   ): Promise<SuccessResponse> {
+
     const products = await this.productService.mostProductsInStore(limit)
+
     return new SuccessResponse({
       message: "Lấy danh sách sản phẩm thành công!",
       metadata: { data: products },
     })
+
   }
 
   @Public()
