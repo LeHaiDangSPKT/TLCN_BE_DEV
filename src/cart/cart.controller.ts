@@ -99,11 +99,11 @@ export class CartController {
     const store = await this.storeService.getById(product.storeId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
 
-    const data = await this.cartService.removeProductInCart(userId, productId, store._id)
+    await this.cartService.removeProductInCart(userId, productId, store._id)
 
     return new SuccessResponse({
       message: "Xóa sản phẩm khỏi giỏ hàng thành công!",
-      metadata: { data },
+      metadata: { },
     })
   }
 

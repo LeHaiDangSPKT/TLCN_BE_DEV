@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { BillService } from './bill.service';
-import { CreateBillDto } from './dto/create-bill.dto';
+import { CreateBillDto, ProductInfo } from './dto/create-bill.dto';
 import { BILL_STATUS, Bill } from './schema/bill.schema';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
@@ -53,11 +53,10 @@ export class BillController {
 
       await this.userService.updateWallet(userId, billDto.totalPrice, "plus")
 
-      billDto.listProducts.forEach(async (product: any) => {
-        await this.cartService.removeProductInCart(userId, product.productId, billDto.storeId)
+      await this.cartService.removeMultiProductInCart(userId, billDto.listProducts, billDto.storeId)
 
+      billDto.listProducts.forEach(async (product: ProductInfo) => {
         await this.productService.updateQuantity(product.productId, product.quantity)
-
       })
 
       let newBill = await this.billService.create(userId, billDto, createBillDto.deliveryMethod, createBillDto.paymentMethod,

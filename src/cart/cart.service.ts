@@ -7,6 +7,7 @@ import { ProductBillDto } from 'src/bill/dto/product-bill.dto';
 import { Product } from 'src/product/schema/product.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 import { Store } from 'src/store/schema/store.schema';
+import { ProductInfo } from 'src/bill/dto/create-bill.dto';
 
 @Injectable()
 export class CartService {
@@ -150,17 +151,46 @@ export class CartService {
         }
     }
 
-    async removeProductInCart(userId: string, productId: string, storeId: string): Promise<Cart> {
+    async removeProductInCart(userId: string, productId: string, storeId: string): Promise<void> {
         try {
-            const allCart = await this.getAllByUserId(userId)
-            const cart: Cart = allCart.find(cart => cart.storeId.toString() === storeId.toString())
-            cart.listProducts = cart.listProducts.filter(product => product.productId.toString() !== productId)
+
+            const cart: Cart = await this.cartModel.findOne({ userId, storeId })
+            
+            if (cart.listProducts.length === 1) {
+                await this.cartModel.findByIdAndDelete(cart._id)
+                return
+            }
+            const index = cart.listProducts.findIndex(product => product.productId.toString() === productId.toString())
+            cart.listProducts.splice(index, 1)
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
+            await cart.save()
+        }
+        catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+
+    async removeMultiProductInCart(userId: string, listProduct: ProductInfo[], storeId: string): Promise<void> {
+        try {
+
+            const cart: Cart = await this.cartModel.findOne({ userId, storeId })
+            
+            listProduct.forEach(product => {
+                const index = cart.listProducts.findIndex(productCart => productCart.productId.toString() === product.productId.toString())
+                cart.listProducts.splice(index, 1)
+            })
+
             if (cart.listProducts.length === 0) {
                 await this.cartModel.findByIdAndDelete(cart._id)
-                return null
+                return
             }
-            return await this.cartModel.findByIdAndUpdate(cart._id, cart, { new: true })
+
+            cart.totalPrice = this.getTotalPrice(cart.listProducts)
+            await cart.save()
+            
         }
         catch (err) {
             if (err instanceof MongooseError)
