@@ -181,8 +181,22 @@ export class ProductController {
       message: "Lấy danh sách sản phẩm thành công!",
       metadata: { data: products },
     })
-
   }
+
+  @Public()
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @Get('/random')
+  async getRandom(
+    @Query('limit') limit: number,
+  ): Promise<SuccessResponse | NotFoundException> {
+    const products: Product[] = await this.productService.getRandomProducts(limit)
+    if (!products) return new NotFoundException("Không tìm thấy sản phẩm!")
+    return new SuccessResponse({
+      message: "Lấy thông tin sản phẩm thành công!",
+      metadata: { data: products },
+    })
+  }
+
 
   @Public()
   @Get('/:id')
@@ -210,4 +224,5 @@ export class ProductController {
       metadata: { data: store },
     })
   }
+
 }

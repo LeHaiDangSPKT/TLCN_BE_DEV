@@ -157,4 +157,18 @@ export class ProductService {
     }
 
 
+    async getRandomProducts(limit: number = 3): Promise<Product[]> {
+        try {
+            const products = await this.productModel.aggregate([
+                { $sample: { size: Number(limit) } }
+            ])
+            return products
+        }
+        catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
 }
