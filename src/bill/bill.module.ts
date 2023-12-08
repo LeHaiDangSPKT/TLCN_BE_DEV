@@ -1,4 +1,4 @@
-import {  Module } from '@nestjs/common';
+import {  Module, forwardRef } from '@nestjs/common';
 import { BillService } from './bill.service';
 import { BillController } from './bill.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -20,9 +20,9 @@ import { CartModule } from 'src/cart/cart.module';
     RoleModule,
     PaymentModule,
     UserModule,
-    ProductModule,
     StoreModule,
     CartModule,
+    forwardRef(() => ProductModule),
   ],
   controllers: [BillController],
   providers: [BillService],

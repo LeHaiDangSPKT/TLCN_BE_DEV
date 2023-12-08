@@ -19,6 +19,8 @@ import { Notification } from 'src/notification/schema/notification.schema';
 import { ProductDto } from './dto/product.dto';
 import { Product } from './schema/product.schema';
 import { clearGlobalAppDefaultCred } from 'firebase-admin/lib/app/credential-factory';
+import { BillService } from 'src/bill/bill.service';
+import { PRODUCT_TYPE } from 'src/bill/schema/bill.schema';
 
 
 @Controller('product')
@@ -31,6 +33,7 @@ export class ProductController {
     private readonly evaluationService: EvaluationService,
     private readonly userService: UserService,
     private readonly notificationService: NotificationService,
+    private readonly billService: BillService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -110,13 +113,32 @@ export class ProductController {
     @Query('search') search: string,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
+
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
     const products = await this.productService.getAllBySearch(store._id, page, limit, search)
+
+    const fullInfoProducts: ProductDto[] = await Promise.all(products.products.map(async (product: Product) => {
+
+      let quantitySold: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.SELL, 'DELIVERED');
+      let quantityGive: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.GIVE, 'DELIVERED');
+      let revenue: number = quantitySold * product.price;
+
+      return {
+        ...product.toObject(),
+        storeName: store.name,
+        quantitySold,
+        quantityGive,
+        revenue,
+      }
+    }));
+
     return new SuccessResponse({
       message: "Lấy danh sách sản phẩm thành công!",
-      metadata: { data: products },
+      metadata: { data: {total: products.total, products: fullInfoProducts} },
     })
+
   }
 
 

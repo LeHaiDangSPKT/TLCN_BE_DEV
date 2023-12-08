@@ -25,6 +25,9 @@ export class BillService {
     async create(userId: string, billDto: CartInfo, deliveryMethod: string, paymentMethod: string,
         receiverInfo: ReceiverInfo, giveInfo: GiveInfo, deliveryFee: number): Promise<Bill> {
         try {
+            billDto.listProducts.forEach((product: ProductInfo) => {
+                product.type = product.type.toUpperCase()
+            })
             const billData = await this.billModel.create(billDto)
             billData.userId = userId
             billData.deliveryMethod = deliveryMethod
@@ -322,6 +325,26 @@ export class BillService {
                 bill.save()
             }
             return bill ? true : false
+        }
+        catch (err) {
+            if (err instanceof MongooseError)
+                throw new InternalServerErrorExceptionCustom()
+            throw err
+        }
+    }
+
+    async countProductDelivered(productId: string, type: string, status: string): Promise<number> {
+        try {
+            const total = await this.billModel.countDocuments({
+                'listProducts': {
+                    $elemMatch: {
+                        'productId': productId.toString(),
+                        'type': type.toUpperCase()
+                    }
+                },
+                'status': status.toUpperCase()
+            })
+            return total
         }
         catch (err) {
             if (err instanceof MongooseError)

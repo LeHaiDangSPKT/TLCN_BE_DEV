@@ -9,6 +9,7 @@ import { StoreModule } from 'src/store/store.module';
 import { EvaluationModule } from 'src/evaluation/evaluation.module';
 import { UserModule } from 'src/user/user.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { BillModule } from 'src/bill/bill.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     forwardRef(() => EvaluationModule),
     UserModule,
     NotificationModule,
+    forwardRef(() => BillModule),
   ],
   controllers: [ProductController],
   providers: [ProductService],

@@ -47,4 +47,16 @@ export class ProductDto {
     @IsNotEmpty()
     storeName: string;
 
+    @ApiProperty()
+    @IsNotEmpty()
+    quantitySold: number;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    quantityGive: number;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    revenue: number;
+
 }
