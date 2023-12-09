@@ -128,6 +128,7 @@ export class ProductController {
       let quantitySold: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.SELL, 'DELIVERED');
       let quantityGive: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.GIVE, 'DELIVERED');
       let revenue: number = quantitySold * product.price;
+      let isPurchased: boolean = await this.billService.checkProductPurchased(product._id);
 
       return {
         ...product.toObject(),
@@ -135,6 +136,7 @@ export class ProductController {
         quantitySold,
         quantityGive,
         revenue,
+        isPurchased,
       }
     }));
 
