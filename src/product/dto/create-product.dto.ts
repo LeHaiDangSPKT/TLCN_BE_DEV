@@ -24,14 +24,10 @@ export class CreateProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    category: string;
+    categoryId: string;
 
     @ApiProperty({type: [String]})
     @IsNotEmpty()
     keywords: string[];
-
-    @ApiProperty()
-    @IsNotEmpty()
-    type: string;
 
 }

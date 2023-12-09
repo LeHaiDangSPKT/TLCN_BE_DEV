@@ -21,6 +21,7 @@ import { Product } from './schema/product.schema';
 import { clearGlobalAppDefaultCred } from 'firebase-admin/lib/app/credential-factory';
 import { BillService } from 'src/bill/bill.service';
 import { PRODUCT_TYPE } from 'src/bill/schema/bill.schema';
+import { CategoryService } from 'src/category/category.service';
 
 
 @Controller('product')
@@ -34,6 +35,7 @@ export class ProductController {
     private readonly userService: UserService,
     private readonly notificationService: NotificationService,
     private readonly billService: BillService,
+    private readonly categoryService: CategoryService,
   ) { }
 
   @UseGuards(AbilitiesGuard)
@@ -47,6 +49,9 @@ export class ProductController {
 
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
+
+    const category = await this.categoryService.getById(product.categoryId)
+    if (!category) return new NotFoundException("Không tìm thấy danh mục này!")
 
     const newProduct = await this.productService.create(store, product)
 
@@ -124,7 +129,7 @@ export class ProductController {
     const products = await this.productService.getAllBySearch(store._id, page, limit, search, sortType, sortValue)
 
     const fullInfoProducts: ProductDto[] = await Promise.all(products.products.map(async (product: Product) => {
-
+      let category = await this.categoryService.getById(product.categoryId);
       let quantitySold: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.SELL, 'DELIVERED');
       let quantityGive: number = await this.billService.countProductDelivered(product._id, PRODUCT_TYPE.GIVE, 'DELIVERED');
       let revenue: number = quantitySold * product.price;
@@ -132,6 +137,7 @@ export class ProductController {
 
       return {
         ...product.toObject(),
+        categoryName: category.name,
         storeName: store.name,
         quantitySold,
         quantityGive,

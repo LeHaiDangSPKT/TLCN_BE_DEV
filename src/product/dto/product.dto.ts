@@ -28,7 +28,11 @@ export class ProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    category: string;
+    categoryId: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    categoryName: string;
 
     @ApiProperty({type: [String]})
     @IsNotEmpty()
@@ -36,12 +40,7 @@ export class ProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    type: string;
-
-    @ApiProperty()
-    @IsNotEmpty()
     storeId: string;
-
     
     @ApiProperty()
     @IsNotEmpty()

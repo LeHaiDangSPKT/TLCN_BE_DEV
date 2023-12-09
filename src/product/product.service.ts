@@ -90,9 +90,7 @@ export class ProductService {
 
     async update(id: string, product: any): Promise<Product> {
         try {
-            product = { status: false }
-            await this.getById(id)
-            const updatedProduct = await this.productModel.findByIdAndUpdate({ _id: id }, product, { new: true })
+            const updatedProduct = await this.productModel.findByIdAndUpdate({ _id: id }, {...product}, { new: true })
             return updatedProduct
         }
         catch (err) {

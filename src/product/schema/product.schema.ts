@@ -21,13 +21,10 @@ export class Product extends Document {
     description: string;
 
     @Prop()
-    category: string;
+    categoryId: string;
 
     @Prop({type: [String]})
     keywords: string[];
-
-    @Prop()
-    type: string;
 
     @Prop({default: true})
     status: boolean;

@@ -37,4 +37,15 @@ export class CategoryService {
       throw err
     }
   }
+
+  async getById(id: string): Promise<Category> {
+    try {
+      return await this.categoryModel.findById(id)
+    }
+    catch (err) {
+      if (err instanceof MongooseError)
+        throw new InternalServerErrorExceptionCustom()
+      throw err
+    }
+  }
 }

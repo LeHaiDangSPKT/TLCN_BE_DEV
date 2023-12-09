@@ -37,7 +37,6 @@ export class CartService {
             productInfo.productName = product.productName
             productInfo.quantity = 1
             productInfo.price = product.price
-            productInfo.type = product.type
             productInfo.quantityInStock = product.quantity
             cart.listProducts = [productInfo]
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
@@ -72,7 +71,6 @@ export class CartService {
             productInfo.productName = product.productName
             productInfo.quantity = 1
             productInfo.price = product.price
-            productInfo.type = product.type
             productInfo.quantityInStock = product.quantity
             cart.listProducts.push(productInfo)
             cart.totalPrice = this.getTotalPrice(cart.listProducts)
