@@ -5,7 +5,6 @@ import { Model, MongooseError, Types } from 'mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Store } from 'src/store/schema/store.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
-import * as unorm from 'unorm';
 import removeVietnameseTones from 'src/utils/removeVietNameseTones';
 
 @Injectable()
@@ -41,7 +40,7 @@ export class ProductService {
         }
     }
 
-    async getAllBySearch(storeIdInput: string, pageQuery: number, limitQuery: number, searchQuery: string)
+    async getAllBySearch(storeIdInput: string, pageQuery: number, limitQuery: number, searchQuery: string, sortTypeQuery: string = 'desc', sortValueQuery: string = 'productName')
         : Promise<{ total: number, products: Product[] }> {
         const storeId = storeIdInput ? { storeId: storeIdInput } : {}
         const limit = Number(limitQuery) || Number(process.env.LIMIT_DEFAULT)
@@ -65,11 +64,19 @@ export class ProductService {
 
             // sort by productName
 
-            products.sort((a, b) => {
-                if (removeVietnameseTones(a.productName).toUpperCase() < removeVietnameseTones(b.productName).toUpperCase()) return -1
-                if (removeVietnameseTones(a.productName).toUpperCase() > removeVietnameseTones(b.productName).toUpperCase()) return 1
-                return 0
-            })
+            sortTypeQuery === 'asc' &&
+                products.sort((a: Product, b: Product) => {
+                    console.log(a[`${sortValueQuery}`])
+                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return -1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return 1
+                    return 0
+                })
+            sortTypeQuery === 'desc' &&
+                products.sort((a: Product, b: Product) => {
+                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return -1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return 1
+                    return 0
+                })
 
 
             return { total, products }

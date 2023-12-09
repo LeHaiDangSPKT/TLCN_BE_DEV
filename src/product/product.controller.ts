@@ -107,17 +107,21 @@ export class ProductController {
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiQuery({ name: 'search', type: String, required: false })
+  @ApiQuery({ name: 'sortType', type: String, required: false })
+  @ApiQuery({ name: 'sortValue', type: String, required: false })
   async getAllBySearch(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
+    @Query('sortType') sortType: string,
+    @Query('sortValue') sortValue: string,
     @GetCurrentUserId() userId: string,
   ): Promise<SuccessResponse | NotFoundException> {
 
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
 
-    const products = await this.productService.getAllBySearch(store._id, page, limit, search)
+    const products = await this.productService.getAllBySearch(store._id, page, limit, search, sortType, sortValue)
 
     const fullInfoProducts: ProductDto[] = await Promise.all(products.products.map(async (product: Product) => {
 
