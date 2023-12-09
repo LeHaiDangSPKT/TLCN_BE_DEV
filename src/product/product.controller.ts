@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AbilitiesGuard } from 'src/ability/guards/abilities.guard';
@@ -169,7 +169,7 @@ export class ProductController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new UpdateProductAbility())
   @CheckRole(RoleName.SELLER)
-  @Put('seller/:id')
+  @Patch('seller/:id')
   async update(
     @Param('id') id: string,
     @Body() product: UpdateProductDto,
@@ -243,7 +243,7 @@ export class ProductController {
   @UseGuards(AbilitiesGuard)
   @CheckAbilities(new DeleteProductAbility())
   @CheckRole(RoleName.MANAGER)
-  @Put('manager/deleteProduct/:id')
+  @Delete('manager/deleteProduct/:id')
   async deleteProduct(@Param('id') id: string): Promise<SuccessResponse | NotFoundException> {
     const store = await this.productService.deleteProduct(id);
     if (!store) return new NotFoundException("Không tìm thấy sản phẩm này!")
