@@ -5,6 +5,8 @@ import { Model, MongooseError, Types } from 'mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Store } from 'src/store/schema/store.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+import * as unorm from 'unorm';
+import removeVietnameseTones from 'src/utils/removeVietNameseTones';
 
 @Injectable()
 export class ProductService {
@@ -60,6 +62,16 @@ export class ProductService {
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(skip)
+
+            // sort by productName
+
+            products.sort((a, b) => {
+                if (removeVietnameseTones(a.productName).toUpperCase() < removeVietnameseTones(b.productName).toUpperCase()) return -1
+                if (removeVietnameseTones(a.productName).toUpperCase() > removeVietnameseTones(b.productName).toUpperCase()) return 1
+                return 0
+            })
+
+
             return { total, products }
         }
         catch (err) {
@@ -140,7 +152,7 @@ export class ProductService {
     }
 
     async updateQuantity(id: string, quantitySold: number): Promise<void> {
-        try{
+        try {
             const product: Product = await this.getById(id)
             product.quantity -= quantitySold
             if (product.quantity === 0) {
@@ -149,7 +161,7 @@ export class ProductService {
             }
             await product.save()
         }
-        catch(err){
+        catch (err) {
             if (err instanceof MongooseError)
                 throw new InternalServerErrorExceptionCustom()
             throw err
