@@ -22,6 +22,4 @@ export class UpdateProductDto {
 
     @ApiProperty({type: [String]})
     keywords: string[];
-
-    status: boolean = true;
 }

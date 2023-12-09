@@ -16,7 +16,7 @@ describe('ProductController', () => {
         const moduleRef = await Test.createTestingModule({
             imports: [ProductModule]
         })
-            .compile();
+        .compile();
 
         app = moduleRef.createNestApplication();
         await app.init();

@@ -126,7 +126,7 @@ export class ProductController {
     const store = await this.storeService.getByUserId(userId)
     if (!store) return new NotFoundException("Không tìm thấy cửa hàng này!")
 
-    const products = await this.productService.getAllBySearch(store._id, page, limit, search, sortType, sortValue)
+    const products = await this.productService.getAllBySearch(store._id, page, limit, search, sortType, sortValue, {})
 
     const fullInfoProducts: ProductDto[] = await Promise.all(products.products.map(async (product: Product) => {
       let category = await this.categoryService.getById(product.categoryId);
@@ -164,7 +164,7 @@ export class ProductController {
     @Query('limit') limit: number,
     @Query('search') search: string,
   ): Promise<SuccessResponse> {
-    const products = await this.productService.getAllBySearch(null, page, limit, search)
+    const products = await this.productService.getAllBySearch(null, page, limit, search, null, null, {status: true})
     return new SuccessResponse({
       message: "Lấy danh sách sản phẩm thành công!",
       metadata: { data: products },

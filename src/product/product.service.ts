@@ -41,7 +41,8 @@ export class ProductService {
         }
     }
 
-    async getAllBySearch(storeIdInput: string, pageQuery: number, limitQuery: number, searchQuery: string, sortTypeQuery: string = 'desc', sortValueQuery: string = 'productName')
+    async getAllBySearch(storeIdInput: string, pageQuery: number, limitQuery: number, searchQuery: string, 
+        sortTypeQuery: string = 'desc', sortValueQuery: string = 'productName', status: any)
         : Promise<{ total: number, products: Product[] }> {
         const storeId = storeIdInput ? { storeId: storeIdInput } : {}
         const limit = Number(limitQuery) || Number(process.env.LIMIT_DEFAULT)
@@ -57,8 +58,8 @@ export class ProductService {
             : {}
         const skip = limit * (page - 1)
         try {
-            const total = await this.productModel.countDocuments({ ...search, ...storeId, status: true })
-            const products = await this.productModel.find({ ...search, ...storeId, status: true })
+            const total = await this.productModel.countDocuments({ ...search, ...storeId, ...status })
+            const products = await this.productModel.find({ ...search, ...storeId, ...status })
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(skip)
@@ -77,6 +78,10 @@ export class ProductService {
     async update(id: string, product: any): Promise<Product> {
         try {
             const updatedProduct = await this.productModel.findByIdAndUpdate({ _id: id }, { ...product }, { new: true })
+            if (product.quantity === 0) {
+                updatedProduct.status = false
+                await updatedProduct.save()
+            }
             return updatedProduct
         }
         catch (err) {
