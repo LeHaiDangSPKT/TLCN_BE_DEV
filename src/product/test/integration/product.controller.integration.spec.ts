@@ -1,4 +1,4 @@
-import { Test } from "@nestjs/testing"
+import { Test, TestingModule } from "@nestjs/testing"
 import { Connection } from "mongoose"
 import * as request from 'supertest';
 import { AppModule } from "../../../app.module"
@@ -6,6 +6,7 @@ import { DatabaseService } from "../../../database/database.service";
 import { productStub } from "../stubs/product.stub";
 import { JwtATAuthGuard } from "src/auth/guards/jwt-at-auth.guard";
 import { ProductModule } from "src/product/product.module";
+import { ProductController } from "src/product/product.controller";
 
 describe('ProductController', () => {
     let dbConnection: Connection;
@@ -13,8 +14,8 @@ describe('ProductController', () => {
     let app: any;
 
     beforeAll(async () => {
-        const moduleRef = await Test.createTestingModule({
-            imports: [ProductModule]
+        const moduleRef: TestingModule = await Test.createTestingModule({
+            controllers: [ProductController]
         })
         .compile();
 

@@ -31,7 +31,7 @@ export class ProductService {
 
     async getById(id: string): Promise<Product> {
         try {
-            const product = await this.productModel.findOne({ _id: id, status: true })
+            const product = await this.productModel.findOne({ _id: id })
             return product
         }
         catch (err) {
