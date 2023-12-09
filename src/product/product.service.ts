@@ -67,14 +67,14 @@ export class ProductService {
             sortTypeQuery === 'asc' &&
                 products.sort((a: Product, b: Product) => {
                     console.log(a[`${sortValueQuery}`])
-                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return -1
-                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return 1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return -1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return 1
                     return 0
                 })
             sortTypeQuery === 'desc' &&
                 products.sort((a: Product, b: Product) => {
-                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return -1
-                    if (removeVietnameseTones(a[`${sortValueQuery}`]).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`]).toUpperCase()) return 1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return -1
+                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return 1
                     return 0
                 })
 
