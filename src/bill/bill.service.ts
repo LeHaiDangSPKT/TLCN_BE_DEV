@@ -5,6 +5,8 @@ import { Model, Error as MongooseError } from 'mongoose';
 import { CartInfo, GiveInfo, ProductInfo, ReceiverInfo } from './dto/create-bill.dto';
 import { ProductBillDto } from './dto/product-bill.dto';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
+import removeVietnameseTones from 'src/utils/removeVietNameseTones';
+import sortByConditions from 'src/utils/sortByContitions';
 
 @Injectable()
 export class BillService {
@@ -123,7 +125,7 @@ export class BillService {
 
             // Tạo mảng chứa 12 tháng với doanh thu mặc định là 0
             const monthlyRevenue: Record<string, number> = {
-                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0, 
+                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0,
                 'Tháng 7': 0, 'Tháng 8': 0, 'Tháng 9': 0, 'Tháng 10': 0, 'Tháng 11': 0, 'Tháng 12': 0,
             }
 
@@ -236,7 +238,7 @@ export class BillService {
 
             // Tạo mảng chứa 12 tháng với tổng số lượng mặc định là 0
             const monthlyCharity: Record<string, number> = {
-                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0, 
+                'Tháng 1': 0, 'Tháng 2': 0, 'Tháng 3': 0, 'Tháng 4': 0, 'Tháng 5': 0, 'Tháng 6': 0,
                 'Tháng 7': 0, 'Tháng 8': 0, 'Tháng 9': 0, 'Tháng 10': 0, 'Tháng 11': 0, 'Tháng 12': 0,
             }
 
@@ -296,6 +298,7 @@ export class BillService {
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(skip)
+
             return { total, bills }
         }
         catch (err) {

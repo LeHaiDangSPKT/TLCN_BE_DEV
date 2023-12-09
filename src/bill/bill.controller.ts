@@ -263,6 +263,7 @@ export class BillController {
         delete productData.subInfo.type
 
         return productData
+
       }))
 
       let storeInfo = await this.storeService.getById(bill.storeId)

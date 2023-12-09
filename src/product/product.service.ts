@@ -6,6 +6,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { Store } from 'src/store/schema/store.schema';
 import { InternalServerErrorExceptionCustom } from 'src/exceptions/InternalServerErrorExceptionCustom.exception';
 import removeVietnameseTones from 'src/utils/removeVietNameseTones';
+import sortByConditions from 'src/utils/sortByContitions';
 
 @Injectable()
 export class ProductService {
@@ -30,7 +31,7 @@ export class ProductService {
 
     async getById(id: string): Promise<Product> {
         try {
-            const product = await this.productModel.findById(id)
+            const product = await this.productModel.findOne({ _id: id, status: true })
             return product
         }
         catch (err) {
@@ -56,28 +57,13 @@ export class ProductService {
             : {}
         const skip = limit * (page - 1)
         try {
-            const total = await this.productModel.countDocuments({ ...search, ...storeId })
-            const products = await this.productModel.find({ ...search, ...storeId })
+            const total = await this.productModel.countDocuments({ ...search, ...storeId, status: true })
+            const products = await this.productModel.find({ ...search, ...storeId, status: true })
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(skip)
 
-            // sort by productName
-
-            sortTypeQuery === 'asc' &&
-                products.sort((a: Product, b: Product) => {
-                    console.log(a[`${sortValueQuery}`])
-                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return -1
-                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return 1
-                    return 0
-                })
-            sortTypeQuery === 'desc' &&
-                products.sort((a: Product, b: Product) => {
-                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() < removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return -1
-                    if (removeVietnameseTones(a[`${sortValueQuery}`].toString()).toUpperCase() > removeVietnameseTones(b[`${sortValueQuery}`].toString()).toUpperCase()) return 1
-                    return 0
-                })
-
+            sortByConditions(products, sortTypeQuery, sortValueQuery)
 
             return { total, products }
         }
@@ -90,7 +76,7 @@ export class ProductService {
 
     async update(id: string, product: any): Promise<Product> {
         try {
-            const updatedProduct = await this.productModel.findByIdAndUpdate({ _id: id }, {...product}, { new: true })
+            const updatedProduct = await this.productModel.findByIdAndUpdate({ _id: id }, { ...product }, { new: true })
             return updatedProduct
         }
         catch (err) {
@@ -102,7 +88,7 @@ export class ProductService {
 
     async deleteProduct(productId: string): Promise<Product> {
         try {
-            const product = await this.productModel.findOneAndDelete({ _id: productId })
+            const product = await this.productModel.findByIdAndUpdate({ _id: productId, status: true }, { status: false }, { new: true })
             return product
         }
         catch (err) {
@@ -114,7 +100,7 @@ export class ProductService {
 
     async getListProductLasted(limit: number): Promise<Product[]> {
         try {
-            const products = await this.productModel.find({}).sort({ createdAt: -1 }).limit(limit)
+            const products = await this.productModel.find({status: true}).sort({ createdAt: -1 }).limit(limit)
             return products
         }
         catch (err) {
@@ -128,6 +114,9 @@ export class ProductService {
         try {
             const limitQuery = Number(limit) || Number(process.env.LIMIT_DEFAULT)
             const products = await this.productModel.aggregate([
+                {
+                    $match: { status: true }
+                },
                 {
                     $group: {
                         _id: '$storeId',
@@ -161,8 +150,7 @@ export class ProductService {
             const product: Product = await this.getById(id)
             product.quantity -= quantitySold
             if (product.quantity === 0) {
-                await this.productModel.findByIdAndDelete(product._id)
-                return
+                product.status = false
             }
             await product.save()
         }
@@ -177,6 +165,7 @@ export class ProductService {
     async getRandomProducts(limit: number = 3): Promise<Product[]> {
         try {
             const products = await this.productModel.aggregate([
+                { $match: { status: true } },
                 { $sample: { size: Number(limit) } }
             ])
             return products
